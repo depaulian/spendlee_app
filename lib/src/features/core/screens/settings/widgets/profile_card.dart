@@ -3,7 +3,7 @@ import 'package:expense_tracker/src/constants/colors.dart';
 
 class ProfileCard extends StatelessWidget {
   final String name;
-  final String stageName;
+  final String email;
   final VoidCallback onEdit;
   final bool isDark;
   final TextTheme txtTheme;
@@ -11,7 +11,7 @@ class ProfileCard extends StatelessWidget {
   const ProfileCard({
     super.key,
     required this.name,
-    required this.stageName,
+    required this.email,
     required this.onEdit,
     required this.isDark,
     required this.txtTheme,
@@ -42,7 +42,7 @@ class ProfileCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      stageName,
+                      name,
                       style:txtTheme.bodyMedium?.copyWith(
                           color: tWhiteColor,
                           fontSize: 15,
@@ -51,7 +51,7 @@ class ProfileCard extends StatelessWidget {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      name,
+                      email,
                       style: txtTheme.bodyMedium?.copyWith(color: tWhiteColor),
                     ),
                   ],

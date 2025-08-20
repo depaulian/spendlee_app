@@ -1,3 +1,4 @@
+import 'package:expense_tracker/src/repository/authentication_repository/authentication_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:expense_tracker/src/common_widgets/navbar/curved_navigation_bar.dart';
@@ -25,7 +26,7 @@ class SettingsScreenPageState extends State<SettingsScreenPage> {
   ThemeMode selectedTheme = ThemeMode.system;  // Using Flutter's ThemeMode
   bool notificationsEnabled = true;
   final cartController = Get.put(CartController.instance);
-
+  final authRepo = AuthenticationRepository.instance;
   @override
   Widget build(BuildContext context) {
     final tabHandler = TabHandler();
@@ -43,62 +44,14 @@ class SettingsScreenPageState extends State<SettingsScreenPage> {
             tLogo,
             fit: BoxFit.contain,
           ),
-        ),
-        actions: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.shopping_cart,color: tWhiteColor,),
-                onPressed: () {
-                  // Show cart details in a bottom sheet
-                  if (cartController.cartItems.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Your cart is empty'),
-                        duration: Duration(seconds: 1),
-                      ),
-                    );
-                    return;
-                  }
-                },
-              ),
-              Obx(() => cartController.cartItems.isNotEmpty
-                  ? Positioned(
-                top: 5,
-                right: 5,
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  constraints: const BoxConstraints(
-                    minWidth: 16,
-                    minHeight: 16,
-                  ),
-                  child: Text(
-                    cartController.cartItems.length.toString(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              )
-                  : const SizedBox(),
-              ),
-            ],
-          ),
-        ],
+        )
       ),
       body: SafeArea(
         child: ListView(
           children: [
             ProfileCard(
-              name: 'expense_trackerdemo@gmail.com',
-              stageName: 'expense_tracker Demo User',
+              name: authRepo.getUserFullName,
+              email: authRepo.getUserEmail,
               isDark: isDark,
               txtTheme: txtTheme,
               onEdit: () {
@@ -106,22 +59,6 @@ class SettingsScreenPageState extends State<SettingsScreenPage> {
               },
             ),
             AccountSettingsSection(),
-            PreferencesSection(
-              selectedTheme: selectedTheme,
-              onThemeChanged: (ThemeMode? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    selectedTheme = newValue;
-                  });
-                }
-              },
-              notificationsEnabled: notificationsEnabled,
-              onNotificationChanged: (bool value) {
-                setState(() {
-                  notificationsEnabled = value;
-                });
-              },
-            ),
             SupportSection(),
             AboutSection(),
           ],
