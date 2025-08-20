@@ -16,21 +16,44 @@ class BalanceCard extends StatelessWidget {
     required this.currencyCode,
   });
 
+  // Determine if balance is positive (income >= expenses)
+  bool get isPositiveBalance => currentBalance >= 0;
+
+  // Get gradient colors based on balance
+  List<Color> get gradientColors {
+    if (isPositiveBalance) {
+      // Green gradient for positive balance
+      return [const Color(0xFF66BB6A), const Color(0xFF4CAF50)];
+    } else {
+      // Red gradient for negative balance
+      return [const Color(0xFFEF5350), const Color(0xFFE53935)];
+    }
+  }
+
+  // Get shadow color based on balance
+  Color get shadowColor {
+    if (isPositiveBalance) {
+      return Colors.green.withOpacity(0.3);
+    } else {
+      return Colors.red.withOpacity(0.3);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF66BB6A), Color(0xFF4CAF50)],
+        gradient: LinearGradient(
+          colors: gradientColors,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.green.withOpacity(0.3),
+            color: shadowColor,
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -47,12 +70,40 @@ class BalanceCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Show indicator icon based on balance
+              Icon(
+                isPositiveBalance ? Icons.trending_up : Icons.trending_down,
+                color: Colors.white,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  '$currencyCode ${formatNumber(currentBalance.abs())}', // Use abs() to always show positive number
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          // Show balance status text
+          const SizedBox(height: 4),
           Text(
-            '$currencyCode ${formatNumber(currentBalance)}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
+            isPositiveBalance
+                ? (currentBalance == 0 ? 'Balanced' : 'Surplus')
+                : 'Deficit',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.9),
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              fontStyle: FontStyle.italic,
             ),
           ),
           const SizedBox(height: 24),

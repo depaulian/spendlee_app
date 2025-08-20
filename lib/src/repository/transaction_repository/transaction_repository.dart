@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:expense_tracker/src/constants/external_endpoints.dart';
 import 'package:expense_tracker/src/repository/preferences/user_preferences.dart';
@@ -533,6 +534,341 @@ class TransactionRepository extends GetxController {
           'status': false,
           'message': 'Failed to retrieve categories',
           'data': null
+        };
+      }
+    } catch (error) {
+      return {
+        'status': false,
+        'message': 'Network error occurred',
+        'data': error.toString()
+      };
+    }
+  }
+
+  // Budget-related methods
+  Future<Map<String, dynamic>> getBudgetSummary() async {
+    try {
+      final accessToken = await userPreferences.getAccessToken();
+      if (accessToken == null) {
+        return {
+          'status': false,
+          'message': 'No access token found',
+          'data': null
+        };
+      }
+
+      final response = await http.get(
+        Uri.parse(tBudgetSummaryUrl),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return {
+          'status': true,
+          'message': 'Budget summary retrieved successfully',
+          'data': responseData
+        };
+      } else {
+        return {
+          'status': false,
+          'message': 'Failed to retrieve budget summary',
+          'data': null
+        };
+      }
+    } catch (error) {
+      return {
+        'status': false,
+        'message': 'Network error occurred',
+        'data': error.toString()
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> createWeeklyBudget({
+    required double amount,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    try {
+      final accessToken = await userPreferences.getAccessToken();
+      if (accessToken == null) {
+        return {
+          'status': false,
+          'message': 'No access token found',
+          'data': null
+        };
+      }
+
+      final response = await http.post(
+        Uri.parse(tWeeklyBudgetUrl),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'amount': amount,
+          'start_date': startDate.toIso8601String(),
+          'end_date': endDate.toIso8601String(),
+        }),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return {
+          'status': true,
+          'message': 'Weekly budget created successfully',
+          'data': responseData
+        };
+      } else {
+        final errorData = jsonDecode(response.body);
+        return {
+          'status': false,
+          'message': 'Failed to create weekly budget',
+          'data': errorData['detail'] ?? 'Unknown error'
+        };
+      }
+    } catch (error) {
+      return {
+        'status': false,
+        'message': 'Network error occurred',
+        'data': error.toString()
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> createMonthlyBudget({
+    required double amount,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    try {
+      final accessToken = await userPreferences.getAccessToken();
+      if (accessToken == null) {
+        return {
+          'status': false,
+          'message': 'No access token found',
+          'data': null
+        };
+      }
+
+      final response = await http.post(
+        Uri.parse(tMonthlyBudgetUrl),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'amount': amount,
+          'start_date': startDate.toIso8601String(),
+          'end_date': endDate.toIso8601String(),
+        }),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return {
+          'status': true,
+          'message': 'Monthly budget created successfully',
+          'data': responseData
+        };
+      } else {
+        final errorData = jsonDecode(response.body);
+        return {
+          'status': false,
+          'message': 'Failed to create monthly budget',
+          'data': errorData['detail'] ?? 'Unknown error'
+        };
+      }
+    } catch (error) {
+      return {
+        'status': false,
+        'message': 'Network error occurred',
+        'data': error.toString()
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> getWeeklyBudget() async {
+    try {
+      final accessToken = await userPreferences.getAccessToken();
+      if (accessToken == null) {
+        return {
+          'status': false,
+          'message': 'No access token found',
+          'data': null
+        };
+      }
+
+      final response = await http.get(
+        Uri.parse(tWeeklyBudgetUrl),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return {
+          'status': true,
+          'message': 'Weekly budget retrieved successfully',
+          'data': responseData
+        };
+      } else {
+        return {
+          'status': false,
+          'message': 'Failed to retrieve weekly budget',
+          'data': null
+        };
+      }
+    } catch (error) {
+      return {
+        'status': false,
+        'message': 'Network error occurred',
+        'data': error.toString()
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> getMonthlyBudget() async {
+    try {
+      final accessToken = await userPreferences.getAccessToken();
+      if (accessToken == null) {
+        return {
+          'status': false,
+          'message': 'No access token found',
+          'data': null
+        };
+      }
+
+      final response = await http.get(
+        Uri.parse(tMonthlyBudgetUrl),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return {
+          'status': true,
+          'message': 'Monthly budget retrieved successfully',
+          'data': responseData
+        };
+      } else {
+        return {
+          'status': false,
+          'message': 'Failed to retrieve monthly budget',
+          'data': null
+        };
+      }
+    } catch (error) {
+      return {
+        'status': false,
+        'message': 'Network error occurred',
+        'data': error.toString()
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> updateWeeklyBudget({
+    required double amount,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      final accessToken = await userPreferences.getAccessToken();
+      if (accessToken == null) {
+        return {
+          'status': false,
+          'message': 'No access token found',
+          'data': null
+        };
+      }
+
+      final Map<String, dynamic> updateData = {'amount': amount};
+      if (startDate != null) updateData['start_date'] = startDate.toIso8601String();
+      if (endDate != null) updateData['end_date'] = endDate.toIso8601String();
+
+      final response = await http.put(
+        Uri.parse(tWeeklyBudgetUrl),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(updateData),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return {
+          'status': true,
+          'message': 'Weekly budget updated successfully',
+          'data': responseData
+        };
+      } else {
+        final errorData = jsonDecode(response.body);
+        return {
+          'status': false,
+          'message': 'Failed to update weekly budget',
+          'data': errorData['detail'] ?? 'Unknown error'
+        };
+      }
+    } catch (error) {
+      return {
+        'status': false,
+        'message': 'Network error occurred',
+        'data': error.toString()
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> updateMonthlyBudget({
+    required double amount,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      final accessToken = await userPreferences.getAccessToken();
+      if (accessToken == null) {
+        return {
+          'status': false,
+          'message': 'No access token found',
+          'data': null
+        };
+      }
+
+      final Map<String, dynamic> updateData = {'amount': amount};
+      if (startDate != null) updateData['start_date'] = startDate.toIso8601String();
+      if (endDate != null) updateData['end_date'] = endDate.toIso8601String();
+
+      final response = await http.put(
+        Uri.parse(tMonthlyBudgetUrl),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(updateData),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return {
+          'status': true,
+          'message': 'Monthly budget updated successfully',
+          'data': responseData
+        };
+      } else {
+        final errorData = jsonDecode(response.body);
+        return {
+          'status': false,
+          'message': 'Failed to update monthly budget',
+          'data': errorData['detail'] ?? 'Unknown error'
         };
       }
     } catch (error) {
