@@ -269,7 +269,7 @@ class HomeController extends GetxController {
     try {
       print('Loading recent transactions...');
 
-      final result = await _transactionRepo.getTransactions(limit: 10);
+      final result = await _transactionRepo.getTransactions(limit: 5); // Only get 5 transactions
 
       if (result['status'] == true && result['data'] != null) {
         final transactions = result['data'] as List;
