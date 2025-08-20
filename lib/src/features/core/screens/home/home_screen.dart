@@ -1,5 +1,6 @@
 import 'package:expense_tracker/src/constants/colors.dart';
 import 'package:expense_tracker/src/constants/image_strings.dart';
+import 'package:expense_tracker/src/features/core/screens/home/add_transaction_screen.dart';
 import 'package:expense_tracker/src/repository/authentication_repository/authentication_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -487,7 +488,7 @@ class HomeScreenPageState extends State<HomeScreenPage> {
   }
 
   void _navigateToAddTransaction() async {
-    final result = await Navigator.of(context).pushNamed('/add-transaction');
+    final result = await Get.to(() => const AddTransactionScreen());
     if (result == true) {
       // Refresh data if transaction was added
       homeController.refreshData();
