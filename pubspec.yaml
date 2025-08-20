@@ -1,0 +1,65 @@
+name: expense_tracker
+description: "Expense Tracker: Ride to Financial Freedom"
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  flutter_native_splash: ^2.4.1
+  line_awesome_flutter: ^3.0.1
+  http: ^1.2.2
+  shared_preferences: ^2.3.2
+  get: ^4.6.6
+  flutter_otp_text_field: ^1.2.0
+  google_fonts: ^6.2.1
+  intl: ^0.19.0
+  flutter_launcher_icons: ^0.14.4
+  geolocator: ^13.0.3
+  timeline_tile: ^2.0.0
+  curved_navigation_bar: ^1.0.6
+  google_sign_in: ^6.2.2
+  fl_chart: ^0.71.0
+  url_launcher: ^6.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+  mockito: ^5.4.4
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/logo/icon.png"
+  min_sdk_android: 23
+  adaptive_icon_background: "#14684E"
+  adaptive_icon_foreground: "assets/images/logo/launcher_icon.png"
+
+flutter_native_splash:
+  color: "#14684E"
+  color_dark: "#14684E"
+  image: assets/images/logo/splash.png
+  image_dark: assets/images/logo/splash.png
+
+  android_12:
+    image: assets/images/logo/splash.png
+    image_dark: assets/images/logo/splash.png
+
+  web: false
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/logo/
+    - assets/flags/
+    - assets/images/products/

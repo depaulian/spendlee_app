@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "878311127040",
+    "project_id": "spendlee-df933",
+    "storage_bucket": "spendlee-df933.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:878311127040:android:af4c5e0fee8dce1e9540e5",
+        "android_client_info": {
+          "package_name": "com.expense_trackerug.expense_trackerug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "878311127040-qp03fbhrqeq9e0jt98dvg7gtqbea7q94.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.expense_trackerug.expense_trackerug",
+            "certificate_hash": "87e8cc8229ac6748c741e26b0094701c1ac9d9e5"
+          }
+        },
+        {
+          "client_id": "878311127040-0as491fvarc56ajfh63r5tpdma0h1k88.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjJH3S0iLt-F0wkGjrDAGdoR_qbU5F8qw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "878311127040-0as491fvarc56ajfh63r5tpdma0h1k88.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
