@@ -13,6 +13,7 @@ class HomeController extends GetxController {
   // Loading states
   final isLoading = true.obs;
   final isRefreshing = false.obs;
+  final isBudgetLoading = false.obs; // Separate loading state for budget operations
   final hasError = false.obs;
   final errorMessage = ''.obs;
 
@@ -63,6 +64,10 @@ class HomeController extends GetxController {
       _loadBudgetData(),
       _loadRecentTransactions(),
     ], eagerError: false); // Continue even if one fails
+
+    // Always calculate spent amounts to ensure they're current
+    // This is important because the budget API might not return spent amounts
+    await _calculateSpentAmounts();
   }
 
   Future<void> _loadBalanceData() async {
@@ -145,24 +150,62 @@ class HomeController extends GetxController {
 
       if (result['status'] == true && result['data'] != null) {
         final data = result['data'];
+        print('Budget API response: $data');
+
+        // Store current values to avoid resetting to 0
+        double currentWeeklyBudget = weeklyBudget.value;
+        double currentWeeklySpent = weeklySpent.value;
+        double currentMonthlyBudget = monthlyBudget.value;
+        double currentMonthlySpent = monthlySpent.value;
 
         // Handle weekly budget
         if (data['weekly_budget'] != null) {
           final weeklyData = data['weekly_budget'];
-          weeklyBudget.value = _parseDouble(weeklyData['amount']);
-          weeklySpent.value = _parseDouble(weeklyData['spent']);
+          final apiBudget = _parseDouble(weeklyData['amount']);
+          final apiSpent = _parseDouble(weeklyData['spent']);
+
+          if (apiBudget > 0) {
+            currentWeeklyBudget = apiBudget;
+            // Only update spent if API provides it and it's valid
+            if (apiSpent > 0) {
+              currentWeeklySpent = apiSpent;
+            }
+          }
+          print('Weekly budget from API: $currentWeeklyBudget, spent: $currentWeeklySpent');
         }
 
         // Handle monthly budget
         if (data['monthly_budget'] != null) {
           final monthlyData = data['monthly_budget'];
-          monthlyBudget.value = _parseDouble(monthlyData['amount']);
-          monthlySpent.value = _parseDouble(monthlyData['spent']);
+          final apiBudget = _parseDouble(monthlyData['amount']);
+          final apiSpent = _parseDouble(monthlyData['spent']);
+
+          if (apiBudget > 0) {
+            currentMonthlyBudget = apiBudget;
+            // Only update spent if API provides it and it's valid
+            if (apiSpent > 0) {
+              currentMonthlySpent = apiSpent;
+            }
+          }
+          print('Monthly budget from API: $currentMonthlyBudget, spent: $currentMonthlySpent');
         }
 
-        print('Budget loaded: Weekly: ${weeklyBudget.value}/${weeklySpent.value}, Monthly: ${monthlyBudget.value}/${monthlySpent.value}');
+        // Update values all at once to avoid UI flashing
+        weeklyBudget.value = currentWeeklyBudget;
+        weeklySpent.value = currentWeeklySpent;
+        monthlyBudget.value = currentMonthlyBudget;
+        monthlySpent.value = currentMonthlySpent;
+
+        // If we have budgets but spent amounts are still 0, calculate them
+        final needsWeeklyCalculation = currentWeeklyBudget > 0 && currentWeeklySpent == 0;
+        final needsMonthlyCalculation = currentMonthlyBudget > 0 && currentMonthlySpent == 0;
+
+        if (needsWeeklyCalculation || needsMonthlyCalculation) {
+          print('Some spent amounts missing, calculating manually');
+          await _calculateSpentAmounts();
+        }
       } else {
-        print('Budget API failed, calculating spent amounts');
+        print('Budget API failed, calculating spent amounts manually');
         await _calculateSpentAmounts();
       }
     } catch (e) {
@@ -174,9 +217,16 @@ class HomeController extends GetxController {
   Future<void> _calculateSpentAmounts() async {
     try {
       final now = DateTime.now();
+      print('Calculating spent amounts for date: $now');
 
-      // Calculate weekly spent (last 7 days)
-      final weekStart = now.subtract(const Duration(days: 7));
+      // Store current values to preserve them during calculation
+      double currentWeeklySpent = weeklySpent.value;
+      double currentMonthlySpent = monthlySpent.value;
+
+      // Calculate weekly spent (last 7 days from today)
+      final weekStart = now.subtract(const Duration(days: 6)); // Include today, so 7 days total
+      print('Weekly calculation: $weekStart to $now');
+
       final weeklyResult = await _transactionRepo.getExpenses(
         startDate: weekStart,
         endDate: now,
@@ -185,11 +235,14 @@ class HomeController extends GetxController {
 
       if (weeklyResult['status'] == true && weeklyResult['data'] != null) {
         final expenses = weeklyResult['data'] as List;
-        weeklySpent.value = expenses.fold(0.0, (sum, item) => sum + _parseDouble(item['amount']));
+        currentWeeklySpent = expenses.fold(0.0, (sum, item) => sum + _parseDouble(item['amount']));
+        print('Weekly expenses found: ${expenses.length} transactions, total: $currentWeeklySpent');
       }
 
-      // Calculate monthly spent (current month)
+      // Calculate monthly spent (current month from 1st to today)
       final monthStart = DateTime(now.year, now.month, 1);
+      print('Monthly calculation: $monthStart to $now');
+
       final monthlyResult = await _transactionRepo.getExpenses(
         startDate: monthStart,
         endDate: now,
@@ -198,10 +251,15 @@ class HomeController extends GetxController {
 
       if (monthlyResult['status'] == true && monthlyResult['data'] != null) {
         final expenses = monthlyResult['data'] as List;
-        monthlySpent.value = expenses.fold(0.0, (sum, item) => sum + _parseDouble(item['amount']));
+        currentMonthlySpent = expenses.fold(0.0, (sum, item) => sum + _parseDouble(item['amount']));
+        print('Monthly expenses found: ${expenses.length} transactions, total: $currentMonthlySpent');
       }
 
-      print('Calculated spent amounts: Weekly: ${weeklySpent.value}, Monthly: ${monthlySpent.value}');
+      // Update spent amounts all at once to prevent UI flashing
+      weeklySpent.value = currentWeeklySpent;
+      monthlySpent.value = currentMonthlySpent;
+
+      print('Final calculated spent amounts: Weekly: ${weeklySpent.value}, Monthly: ${monthlySpent.value}');
     } catch (e) {
       print('Error calculating spent amounts: $e');
     }
@@ -239,6 +297,9 @@ class HomeController extends GetxController {
     }
 
     try {
+      // Set budget loading state instead of general loading
+      isBudgetLoading.value = true;
+
       final now = DateTime.now();
       final isWeekly = period.toLowerCase() == 'weekly';
 
@@ -259,36 +320,71 @@ class HomeController extends GetxController {
 
       Map<String, dynamic> result;
 
-      if (isWeekly) {
-        result = await _transactionRepo.createWeeklyBudget(
+      // Check if budget already exists and update, otherwise create
+      if (isWeekly && weeklyBudget.value > 0) {
+        result = await _transactionRepo.updateWeeklyBudget(
+          amount: amount,
+          startDate: startDate,
+          endDate: endDate,
+        );
+      } else if (!isWeekly && monthlyBudget.value > 0) {
+        result = await _transactionRepo.updateMonthlyBudget(
           amount: amount,
           startDate: startDate,
           endDate: endDate,
         );
       } else {
-        result = await _transactionRepo.createMonthlyBudget(
-          amount: amount,
-          startDate: startDate,
-          endDate: endDate,
-        );
+        // Create new budget
+        if (isWeekly) {
+          result = await _transactionRepo.createWeeklyBudget(
+            amount: amount,
+            startDate: startDate,
+            endDate: endDate,
+          );
+        } else {
+          result = await _transactionRepo.createMonthlyBudget(
+            amount: amount,
+            startDate: startDate,
+            endDate: endDate,
+          );
+        }
       }
 
       if (result['status'] == true) {
-        // Update local values
+        // Update budget amount immediately for better UX
         if (isWeekly) {
           weeklyBudget.value = amount;
         } else {
           monthlyBudget.value = amount;
         }
 
-        _showSuccessSnackbar('Budget Updated', '$period budget set successfully');
+        _showSuccessSnackbar(
+            'Budget ${weeklyBudget.value > 0 || monthlyBudget.value > 0 ? "Updated" : "Set"}',
+            '$period budget set to ${formatNumber(amount)} successfully'
+        );
+
+        // Refresh spent amounts in background without affecting budget amount
+        _calculateSpentAmounts();
       } else {
         throw Exception(result['message'] ?? 'Failed to set budget');
       }
     } catch (e) {
       print('Error setting budget: $e');
-      _showErrorSnackbar('Error', 'Failed to set budget: ${e.toString()}');
+      _showErrorSnackbar('Error', 'Failed to set budget: ${_getErrorMessage(e)}');
+    } finally {
+      isBudgetLoading.value = false;
     }
+  }
+
+  String _getErrorMessage(dynamic error) {
+    if (error.toString().contains('already exists')) {
+      return 'Budget already exists for this period. Try updating instead.';
+    } else if (error.toString().contains('network')) {
+      return 'Network error. Please check your connection.';
+    } else if (error.toString().contains('unauthorized')) {
+      return 'Session expired. Please log in again.';
+    }
+    return 'An unexpected error occurred';
   }
 
   Future<void> deleteTransaction(int transactionId) async {
@@ -407,4 +503,20 @@ class HomeController extends GetxController {
   bool get hasWeeklyBudget => weeklyBudget.value > 0;
   bool get hasMonthlyBudget => monthlyBudget.value > 0;
   bool get hasBudget => budgetPeriod.value == 'Weekly' ? hasWeeklyBudget : hasMonthlyBudget;
+
+  // Debug method to help troubleshoot budget issues
+  void debugBudgetData() {
+    print('=== BUDGET DEBUG INFO ===');
+    print('Budget Period: ${budgetPeriod.value}');
+    print('Weekly Budget: ${weeklyBudget.value}');
+    print('Weekly Spent: ${weeklySpent.value}');
+    print('Monthly Budget: ${monthlyBudget.value}');
+    print('Monthly Spent: ${monthlySpent.value}');
+    print('Current Budget: ${budgetPeriod.value == 'Weekly' ? weeklyBudget.value : monthlyBudget.value}');
+    print('Current Spent: ${budgetPeriod.value == 'Weekly' ? weeklySpent.value : monthlySpent.value}');
+    print('Progress: ${budgetProgress}');
+    print('Remaining: ${remainingBudget}');
+    print('Exceeded: ${isBudgetExceeded}');
+    print('========================');
+  }
 }
