@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:expense_tracker/src/utils/tab_handler.dart';
 import 'package:expense_tracker/src/utils/theme/theme_controller.dart';
+import 'package:expense_tracker/src/features/core/controllers/home_controller.dart';
 
 // Import the separate widget files
 import 'widgets/balance_card_widget.dart';
@@ -20,78 +21,320 @@ class HomeScreenPage extends StatefulWidget {
 }
 
 class HomeScreenPageState extends State<HomeScreenPage> {
-  // Sample data - replace with your data model
   final authRepo = AuthenticationRepository.instance;
-  final double currentBalance = 65000.00;
-  final double totalIncome = 120000.00;
-  final double totalExpenses = 55000.00;
+  late HomeController homeController;
+  int currentPage = 0;
 
-  // Budget data
-  double weeklyBudget = 15000.00;
-  double weeklySpent = 8500.00;
-  double monthlyBudget = 60000.00;
-  double monthlySpent = 45000.00;
-  String budgetPeriod = 'Weekly'; // 'Weekly' or 'Monthly'
+  @override
+  void initState() {
+    super.initState();
+    homeController = Get.put(HomeController());
+  }
 
-  final List<Transaction> recentTransactions = [
-    Transaction(
-      title: 'Freelance',
-      category: 'Income',
-      amount: 120000.00,
-      date: 'Jul 9',
-      time: 'hhh',
-      icon: Icons.laptop_mac,
-      isIncome: true,
-    ),
-    Transaction(
-      title: 'Entertainment',
-      category: 'Entertainment',
-      amount: 5000.00,
-      date: 'Jul 9',
-      time: 'ghhh',
-      icon: Icons.movie,
-      isIncome: false,
-    ),
-    Transaction(
-      title: 'Food',
-      category: 'Food',
-      amount: 50000.00,
-      date: 'Jul 9',
-      time: 'gfhh',
-      icon: Icons.restaurant,
-      isIncome: false,
-    ),
-  ];
+  @override
+  Widget build(BuildContext context) {
+    final tabHandler = TabHandler();
+    final themeController = Get.put(ThemeController());
 
-  String _formatNumber(double number) {
-    if (number >= 1000) {
-      return '${(number / 1000).toStringAsFixed(0)}K';
-    }
-    return number.toStringAsFixed(2);
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F7FA),
+      appBar: _buildAppBar(),
+      body: _buildBody(),
+      bottomNavigationBar: _buildBottomNavigation(tabHandler),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      automaticallyImplyLeading: false,
+      leading: const Padding(
+        padding: EdgeInsets.all(8.0),
+        child: Image(
+          image: AssetImage(tLogo),
+          height: 50,
+        ),
+      ),
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            'Track Expense',
+            style: TextStyle(
+              color: tWhiteColor,
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.notifications, color: tWhiteColor, size: 30),
+            onPressed: () {
+              // Add notification functionality here
+            },
+          ),
+        ],
+      ),
+      backgroundColor: tPrimaryColor,
+      elevation: 0,
+    );
+  }
+
+  Widget _buildBody() {
+    return Obx(() {
+      if (homeController.isLoading.value) {
+        return const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(tPrimaryColor),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Loading your financial data...',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
+      if (homeController.hasError.value) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Colors.red,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                homeController.errorMessage.value,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.red,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => homeController.refreshData(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: tPrimaryColor,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        );
+      }
+
+      return RefreshIndicator(
+        onRefresh: () => homeController.refreshData(),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Balance Card with real data
+              BalanceCard(
+                currentBalance: homeController.currentBalance.value,
+                totalIncome: homeController.totalIncome.value,
+                totalExpenses: homeController.totalExpenses.value,
+                formatNumber: homeController.formatNumber,
+                currencyCode: authRepo.currentCurrency.code,
+              ),
+
+              const SizedBox(height: 24),
+
+              // Action Buttons
+              const ActionButtons(),
+
+              const SizedBox(height: 24),
+
+              // Budget Section with real data
+              BudgetSection(
+                weeklyBudget: homeController.weeklyBudget.value,
+                weeklySpent: homeController.weeklySpent.value,
+                monthlyBudget: homeController.monthlyBudget.value,
+                monthlySpent: homeController.monthlySpent.value,
+                budgetPeriod: homeController.budgetPeriod.value,
+                formatNumber: homeController.formatNumber,
+                currencyCode: authRepo.currentCurrency.code,
+                onBudgetPeriodChanged: (period) {
+                  homeController.changeBudgetPeriod(period);
+                },
+                onSetBudget: _showSetBudgetModal,
+              ),
+
+              const SizedBox(height: 24),
+
+              // Recent Transactions Section
+              _buildRecentTransactionsSection(),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _buildRecentTransactionsSection() {
+    return Obx(() {
+      if (homeController.recentTransactions.isNotEmpty) {
+        return RecentTransactionsSection(
+          transactions: homeController.recentTransactions.toList(),
+          formatNumber: homeController.formatNumber,
+          onDeleteTransaction: _deleteTransaction,
+          currencyCode: authRepo.currentCurrency.code,
+        );
+      } else {
+        return _buildEmptyTransactionsState();
+      }
+    });
+  }
+
+  Widget _buildEmptyTransactionsState() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Recent Transactions',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
+              TextButton(
+                onPressed: _navigateToAddTransaction,
+                child: const Text(
+                  'Add Transaction',
+                  style: TextStyle(
+                    color: tPrimaryColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 120,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.receipt_long_outlined,
+                    size: 48,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'No Recent Transactions',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Add your first transaction to get started',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomNavigation(TabHandler tabHandler) {
+    return BottomNavigationBar(
+      currentIndex: currentPage,
+      onTap: (index) {
+        setState(() {
+          currentPage = index;
+        });
+        tabHandler.handleTabChange(index);
+      },
+      type: BottomNavigationBarType.fixed,
+      selectedItemColor: tTertiaryColor,
+      unselectedItemColor: tWhiteColor,
+      backgroundColor: tPrimaryColor,
+      elevation: 8,
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.bar_chart),
+          label: 'Summary',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.settings),
+          label: 'Settings',
+        ),
+      ],
+    );
   }
 
   void _showSetBudgetModal() {
     final TextEditingController budgetController = TextEditingController();
-    final currentBudget =
-    budgetPeriod == 'Weekly' ? weeklyBudget : monthlyBudget;
-    budgetController.text = currentBudget.toStringAsFixed(0);
+
+    // Pre-fill with current budget if it exists
+    final currentBudget = homeController.budgetPeriod.value == 'Weekly'
+        ? homeController.weeklyBudget.value
+        : homeController.monthlyBudget.value;
+
+    if (currentBudget > 0) {
+      budgetController.text = currentBudget.toStringAsFixed(0);
+    }
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
+        return Obx(() => AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          title: Text('Set $budgetPeriod Budget'),
+          title: Text('Set ${homeController.budgetPeriod.value} Budget'),
           backgroundColor: tPrimaryColor,
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Enter your ${budgetPeriod.toLowerCase()} budget amount:',
-                style: TextStyle(
+                'Enter your ${homeController.budgetPeriod.value.toLowerCase()} budget amount:',
+                style: const TextStyle(
                   color: tWhiteColor,
                   fontSize: 14,
                 ),
@@ -100,22 +343,60 @@ class HomeScreenPageState extends State<HomeScreenPage> {
               TextField(
                 controller: budgetController,
                 keyboardType: TextInputType.number,
+                style: const TextStyle(color: Colors.black),
                 decoration: InputDecoration(
                   prefixText: '${authRepo.currentCurrency.code} ',
+                  prefixStyle: const TextStyle(color: Colors.black),
+                  filled: true,
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(width: 1, color: tWhiteColor),
+                    borderSide: const BorderSide(width: 2, color: tTertiaryColor),
                   ),
                   hintText: 'Enter amount',
+                  hintStyle: const TextStyle(color: Colors.grey),
                 ),
               ),
+              if (currentBudget > 0) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Current ${homeController.budgetPeriod.value} Budget:',
+                        style: const TextStyle(
+                          color: tWhiteColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${authRepo.currentCurrency.code} ${homeController.formatNumber(currentBudget)}',
+                        style: const TextStyle(
+                          color: tWhiteColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
           actions: [
-            // Cancel Button - Secondary Action
+            // Cancel Button
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               style: TextButton.styleFrom(
@@ -123,7 +404,7 @@ class HomeScreenPageState extends State<HomeScreenPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: tWhiteColor, width: 1),
+                  side: const BorderSide(color: tWhiteColor, width: 1),
                 ),
               ),
               child: const Text(
@@ -137,54 +418,32 @@ class HomeScreenPageState extends State<HomeScreenPage> {
 
             const SizedBox(width: 12),
 
-            // Primary Action Button
+            // Set Budget Button with loading state
             ElevatedButton(
-              onPressed: () {
-                final newBudget = double.tryParse(budgetController.text);
-                if (newBudget != null && newBudget > 0) {
-                  setState(() {
-                    if (budgetPeriod == 'Weekly') {
-                      weeklyBudget = newBudget;
-                    } else {
-                      monthlyBudget = newBudget;
-                    }
-                  });
-                  Navigator.of(context).pop();
-                  Get.snackbar(
-                    'Budget Updated',
-                    '$budgetPeriod budget set to \$${_formatNumber(newBudget)}',
-                    backgroundColor: Colors.green[600],
-                    colorText: Colors.white,
-                    borderRadius: 12,
-                    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    icon: const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
-                    duration: const Duration(seconds: 3),
-                  );
-                } else {
-                  Get.snackbar(
-                    'Invalid Amount',
-                    'Please enter a valid budget amount',
-                    backgroundColor: Colors.red[600],
-                    colorText: Colors.white,
-                    borderRadius: 12,
-                    margin: const EdgeInsets.all(16),
-                    icon: const Icon(Icons.error_outline, color: Colors.white, size: 20),
-                    duration: const Duration(seconds: 3),
-                  );
-                }
-              },
+              onPressed: homeController.isBudgetLoading.value
+                  ? null
+                  : () => _handleSetBudget(budgetController.text),
               style: ElevatedButton.styleFrom(
-                backgroundColor: tErrorColor, // Modern blue
+                backgroundColor: tTertiaryColor,
                 foregroundColor: Colors.white,
                 elevation: 0,
                 shadowColor: Colors.transparent,
-                side: BorderSide(color: tBgLightBtnColor),
+                disabledBackgroundColor: tTertiaryColor.withOpacity(0.6),
                 padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
+              child: homeController.isBudgetLoading.value
+                  ? const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+                  : const Text(
                 'Set Budget',
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
@@ -194,135 +453,44 @@ class HomeScreenPageState extends State<HomeScreenPage> {
               ),
             ),
           ],
-        );
+        ));
       },
     );
   }
 
-  void _deleteTransaction(Transaction transaction) {
-    setState(() {
-      recentTransactions.remove(transaction);
-    });
-    Get.snackbar(
-      'Delete Transaction',
-      'Transaction "${transaction.title}" deleted',
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-    );
+  void _handleSetBudget(String budgetText) async {
+    final newBudget = double.tryParse(budgetText);
+    if (newBudget != null && newBudget > 0) {
+      // Close the dialog first
+      Navigator.of(context).pop();
+
+      // Call the controller method to set budget via API
+      await homeController.setBudget(homeController.budgetPeriod.value, newBudget);
+    } else {
+      Get.snackbar(
+        'Invalid Amount',
+        'Please enter a valid budget amount',
+        backgroundColor: Colors.red[600],
+        colorText: Colors.white,
+        borderRadius: 12,
+        margin: const EdgeInsets.all(16),
+        icon: const Icon(Icons.error_outline, color: Colors.white, size: 20),
+        duration: const Duration(seconds: 3),
+      );
+    }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    int page = 0;
-    final tabHandler = TabHandler();
-    final themeController = Get.put(ThemeController());
-    final isDark = themeController.isDarkMode(context);
+  void _deleteTransaction(dynamic transaction) {
+    if (transaction.id != null) {
+      homeController.deleteTransaction(transaction.id!);
+    }
+  }
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: Image(image: AssetImage(tLogo), height: 50,),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Track Expense',
-              style: TextStyle(
-                color: tWhiteColor,
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            IconButton(
-              icon: Icon(Icons.notifications, color: tWhiteColor, size: 30,),
-              onPressed: () {
-                // Add notification functionality here
-              },
-            ),
-          ],
-        ),
-        backgroundColor: tPrimaryColor,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Balance Card
-            BalanceCard(
-              currentBalance: currentBalance,
-              totalIncome: totalIncome,
-              totalExpenses: totalExpenses,
-              formatNumber: _formatNumber,
-              currencyCode: authRepo.currentCurrency.code
-            ),
-
-            const SizedBox(height: 24),
-
-            // Action Buttons
-            const ActionButtons(),
-
-            const SizedBox(height: 24),
-
-            // Budget Section
-            BudgetSection(
-              weeklyBudget: weeklyBudget,
-              weeklySpent: weeklySpent,
-              monthlyBudget: monthlyBudget,
-              monthlySpent: monthlySpent,
-              budgetPeriod: budgetPeriod,
-              formatNumber: _formatNumber,
-              currencyCode: authRepo.currentCurrency.code,
-              onBudgetPeriodChanged: (period) {
-                setState(() {
-                  budgetPeriod = period;
-                });
-              },
-              onSetBudget: _showSetBudgetModal,
-            ),
-
-            const SizedBox(height: 24),
-
-            // Recent Transactions Section
-            RecentTransactionsSection(
-              transactions: recentTransactions,
-              formatNumber: _formatNumber,
-              onDeleteTransaction: _deleteTransaction,
-              currencyCode: authRepo.currentCurrency.code,
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: page,
-        onTap: (index) {
-          setState(() {
-            page = index;
-          });
-          tabHandler.handleTabChange(index);
-        },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: tTertiaryColor,
-        unselectedItemColor: tWhiteColor,
-        backgroundColor: tPrimaryColor,
-        elevation: 8,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: 'Summary',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
-      ),
-    );
+  void _navigateToAddTransaction() async {
+    final result = await Navigator.of(context).pushNamed('/add-transaction');
+    if (result == true) {
+      // Refresh data if transaction was added
+      homeController.refreshData();
+    }
   }
 }

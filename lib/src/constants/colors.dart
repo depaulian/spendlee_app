@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 /* -- LIST OF ALL COLORS -- */
 
 const tPrimaryColor = Color(0xff14684e);
+const tHighColor = Color(0xffdc344c);
 const tJobsColor = Color(0xffc6dbf4);
 const tTertiaryColor = Color(0xffbefea8);
 const tSecondaryColor = Color(0xff38af79);

@@ -1,30 +1,10 @@
+import 'package:expense_tracker/src/features/core/models/transaction_display.dart';
 import 'package:flutter/material.dart';
 
-// Transaction Model (you can move this to a separate models file if needed)
-class Transaction {
-  final String title;
-  final String category;
-  final double amount;
-  final String date;
-  final String time;
-  final IconData icon;
-  final bool isIncome;
-
-  Transaction({
-    required this.title,
-    required this.category,
-    required this.amount,
-    required this.date,
-    required this.time,
-    required this.icon,
-    required this.isIncome,
-  });
-}
-
 class RecentTransactionsSection extends StatelessWidget {
-  final List<Transaction> transactions;
+  final List<TransactionDisplay> transactions;
   final String Function(double) formatNumber;
-  final Function(Transaction) onDeleteTransaction;
+  final Function(TransactionDisplay) onDeleteTransaction;
   final String currencyCode;
 
   const RecentTransactionsSection({
@@ -63,7 +43,7 @@ class RecentTransactionsSection extends StatelessWidget {
     );
   }
 
-  Widget _buildTransactionItem(Transaction transaction) {
+  Widget _buildTransactionItem(TransactionDisplay transaction) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
