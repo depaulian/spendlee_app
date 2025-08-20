@@ -1,3 +1,4 @@
+import 'package:expense_tracker/src/constants/external_endpoints.dart';
 import 'package:expense_tracker/src/features/core/models/currency_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -6,6 +7,7 @@ import 'package:expense_tracker/src/features/authentication/models/user.dart';
 import 'package:expense_tracker/src/features/authentication/screens/login/login_screen.dart';
 import 'package:expense_tracker/src/features/core/screens/home/home_screen.dart';
 import 'package:expense_tracker/src/repository/preferences/user_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class AuthenticationRepository extends GetxController {
   static AuthenticationRepository get instance => Get.find();
@@ -167,6 +169,22 @@ class AuthenticationRepository extends GetxController {
 
   Future<void> logout() async {
     try {
+      final accessToken = await UserPreferences().getAccessToken();
+
+      if (accessToken != null) {
+        try {
+          await http.post(
+            Uri.parse(tLogoutUrl),
+            headers: {
+              'Authorization': 'Bearer $accessToken',
+              'Content-Type': 'application/json',
+            },
+          );
+        } catch (e) {
+          // Continue with local logout even if API call fails
+          print('Logout API call failed: $e');
+        }
+      }
       // Clear all stored data
       await userPreferences.clearAll();
 
@@ -177,13 +195,6 @@ class AuthenticationRepository extends GetxController {
       // Navigate to login screen
       Get.offAll(() => const LoginScreen());
 
-      Get.snackbar(
-        "Success",
-        "Logged out successfully",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
     } catch (e) {
       print('Error during logout: $e');
       // Force logout even if there's an error
