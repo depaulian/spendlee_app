@@ -1,4 +1,5 @@
 import 'package:expense_tracker/src/features/core/controllers/home_controller.dart';
+import 'package:expense_tracker/src/repository/authentication_repository/authentication_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:expense_tracker/src/constants/colors.dart';
@@ -28,6 +29,7 @@ class AddTransactionScreen extends StatefulWidget {
 
 class AddTransactionScreenState extends State<AddTransactionScreen> {
   late AddTransactionController controller;
+  final authRepo = AuthenticationRepository.instance;
 
   @override
   void initState() {
@@ -326,7 +328,7 @@ class AddTransactionScreenState extends State<AddTransactionScreen> {
             color: controller.isExpense.value ? tErrorColor : tSuccessColor,
           ),
           decoration: InputDecoration(
-            prefixText: '\$ ',
+            prefixText: '${authRepo.currentCurrency.code} ',
             prefixStyle: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,

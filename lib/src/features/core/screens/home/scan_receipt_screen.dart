@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:expense_tracker/src/repository/authentication_repository/authentication_repository.dart' show AuthenticationRepository;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -30,6 +31,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
   late AnimationController _fadeController;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _fadeAnimation;
+  final authRepo = AuthenticationRepository.instance;
 
   @override
   void initState() {
@@ -675,9 +677,9 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
         _buildFormField(
           label: 'Amount',
           controller: controller.amountController,
-          icon: Icons.attach_money_rounded,
+          icon: Icons.money,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          prefixText: '\$ ',
+          prefixText: authRepo.currentCurrency.code,
           hintText: '0.00',
         ),
 
