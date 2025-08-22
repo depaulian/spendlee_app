@@ -1,6 +1,7 @@
 import 'package:expense_tracker/src/constants/colors.dart';
 import 'package:expense_tracker/src/constants/image_strings.dart';
 import 'package:expense_tracker/src/features/core/screens/home/add_transaction_screen.dart';
+import 'package:expense_tracker/src/features/core/screens/home/widgets/home_shimmer_loading_widget.dart';
 import 'package:expense_tracker/src/repository/authentication_repository/authentication_repository.dart';
 import 'package:expense_tracker/src/features/core/controllers/receipt_scan_controller.dart';
 import 'package:flutter/material.dart';
@@ -85,24 +86,7 @@ class HomeScreenPageState extends State<HomeScreenPage> {
   Widget _buildBody() {
     return Obx(() {
       if (homeController.isLoading.value) {
-        return const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(tPrimaryColor),
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Loading your financial data...',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-          ),
-        );
+        return const HomePageShimmerLoading();
       }
 
       if (homeController.hasError.value) {
