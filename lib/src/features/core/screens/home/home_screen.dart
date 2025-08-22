@@ -2,6 +2,7 @@ import 'package:expense_tracker/src/constants/colors.dart';
 import 'package:expense_tracker/src/constants/image_strings.dart';
 import 'package:expense_tracker/src/features/core/screens/home/add_transaction_screen.dart';
 import 'package:expense_tracker/src/repository/authentication_repository/authentication_repository.dart';
+import 'package:expense_tracker/src/features/core/controllers/receipt_scan_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:expense_tracker/src/utils/tab_handler.dart';
@@ -30,6 +31,8 @@ class HomeScreenPageState extends State<HomeScreenPage> {
   void initState() {
     super.initState();
     homeController = Get.put(HomeController());
+    // Initialize receipt scan controller
+    Get.put(ReceiptScanController());
   }
 
   @override
@@ -154,7 +157,7 @@ class HomeScreenPageState extends State<HomeScreenPage> {
 
               const SizedBox(height: 24),
 
-              // Action Buttons
+              // Action Buttons - your original widget
               const ActionButtons(),
 
               const SizedBox(height: 24),
@@ -397,7 +400,6 @@ class HomeScreenPageState extends State<HomeScreenPage> {
             ],
           ),
           actions: [
-            // Cancel Button
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               style: TextButton.styleFrom(
@@ -416,10 +418,7 @@ class HomeScreenPageState extends State<HomeScreenPage> {
                 ),
               ),
             ),
-
             const SizedBox(width: 12),
-
-            // Set Budget Button with loading state
             ElevatedButton(
               onPressed: homeController.isBudgetLoading.value
                   ? null
