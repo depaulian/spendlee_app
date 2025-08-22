@@ -1,11 +1,27 @@
 import 'package:expense_tracker/src/features/core/controllers/home_controller.dart';
+import 'package:expense_tracker/src/repository/authentication_repository/authentication_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:expense_tracker/src/constants/colors.dart';
 import 'package:expense_tracker/src/features/core/controllers/add_transaction_controller.dart';
 
 class AddTransactionScreen extends StatefulWidget {
-  const AddTransactionScreen({super.key});
+  // Adding receipt integration parameters (hidden from UI)
+  final String? initialAmount;
+  final String? initialDate;
+  final String? initialMerchant;
+  final String? initialTransactionType;
+  final Map<String, dynamic>? receiptData;
+
+  const AddTransactionScreen({
+    super.key,
+    // Receipt integration parameters
+    this.initialAmount,
+    this.initialDate,
+    this.initialMerchant,
+    this.initialTransactionType,
+    this.receiptData,
+  });
 
   @override
   AddTransactionScreenState createState() => AddTransactionScreenState();
@@ -13,11 +29,69 @@ class AddTransactionScreen extends StatefulWidget {
 
 class AddTransactionScreenState extends State<AddTransactionScreen> {
   late AddTransactionController controller;
+  final authRepo = AuthenticationRepository.instance;
 
   @override
   void initState() {
     super.initState();
     controller = Get.put(AddTransactionController());
+
+    // Initialize with receipt data if present (behind the scenes)
+    _initializeWithReceiptData();
+  }
+
+  void _initializeWithReceiptData() {
+    // Pre-fill form with receipt data if available
+    if (widget.receiptData != null) {
+      final receiptData = widget.receiptData!;
+
+      // Set amount
+      if (receiptData['amount'] != null) {
+        controller.amountController.text = receiptData['amount'].toString();
+      }
+
+      // Set date
+      if (receiptData['date'] != null && receiptData['date'] is DateTime) {
+        controller.updateDate(receiptData['date']);
+      }
+
+      // Set transaction type if specified
+      if (widget.initialTransactionType != null) {
+        final isExpense = widget.initialTransactionType == 'expense';
+        controller.changeTransactionType(isExpense);
+      }
+
+      // Add receipt note
+      if (receiptData['receipt_id'] != null) {
+        controller.noteController.text = 'From receipt scan (ID: ${receiptData['receipt_id']})';
+      }
+    } else {
+      // Handle individual parameters for backward compatibility
+      if (widget.initialAmount != null) {
+        controller.amountController.text = widget.initialAmount!;
+      }
+
+      if (widget.initialTransactionType != null) {
+        final isExpense = widget.initialTransactionType == 'expense';
+        controller.changeTransactionType(isExpense);
+      }
+
+      if (widget.initialDate != null) {
+        try {
+          final parts = widget.initialDate!.split('/');
+          if (parts.length == 3) {
+            final date = DateTime(
+              int.parse(parts[2]), // year
+              int.parse(parts[1]), // month
+              int.parse(parts[0]), // day
+            );
+            controller.updateDate(date);
+          }
+        } catch (e) {
+          print('Error parsing date: $e');
+        }
+      }
+    }
   }
 
   @override
@@ -254,7 +328,7 @@ class AddTransactionScreenState extends State<AddTransactionScreen> {
             color: controller.isExpense.value ? tErrorColor : tSuccessColor,
           ),
           decoration: InputDecoration(
-            prefixText: '\$ ',
+            prefixText: '${authRepo.currentCurrency.code} ',
             prefixStyle: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,

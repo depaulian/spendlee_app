@@ -1,9 +1,17 @@
 import 'package:expense_tracker/src/constants/colors.dart';
+import 'package:expense_tracker/src/repository/receipt_repository/receipt_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class PaywallScreen extends StatefulWidget {
-  const PaywallScreen({super.key});
+  final String? source; // Track where the paywall was triggered from
+  final Map<String, dynamic>? scanData; // Receipt scan data if applicable
+
+  const PaywallScreen({
+    super.key,
+    this.source,
+    this.scanData,
+  });
 
   @override
   PaywallScreenState createState() => PaywallScreenState();
@@ -16,6 +24,7 @@ class PaywallScreenState extends State<PaywallScreen>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
+  final ReceiptRepository _receiptRepo = Get.find<ReceiptRepository>();
   bool isLoading = false;
 
   @override
@@ -49,29 +58,61 @@ class PaywallScreenState extends State<PaywallScreen>
     super.dispose();
   }
 
-  void _onStartFreeTrial() {
+  void _onStartFreeTrial() async {
     setState(() {
       isLoading = true;
     });
 
-    // Simulate loading
-    Future.delayed(const Duration(seconds: 2), () {
+    try {
+      // Call the actual upgrade API
+      final result = await _receiptRepo.upgradeToPremium();
+
+      if (result['status'] == true) {
+        // Success - show success message and return true
+        Get.snackbar(
+          'Welcome to Premium!',
+          'Your free trial has started. Enjoy unlimited features!',
+          backgroundColor: tSuccessColor,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 3),
+        );
+
+        // Return true to indicate successful upgrade
+        Navigator.of(context).pop(true);
+      } else {
+        // API returned error
+        throw Exception(result['message'] ?? 'Upgrade failed');
+      }
+    } catch (error) {
+      // Handle error
+      Get.snackbar(
+        'Upgrade Failed',
+        'Unable to start your free trial. Please try again.',
+        backgroundColor: tErrorColor,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 4),
+      );
+    } finally {
       if (mounted) {
         setState(() {
           isLoading = false;
         });
-        // TODO: Implement purchase logic
-        Get.snackbar(
-          'Coming Soon!',
-          'Purchase integration will be implemented next',
-          backgroundColor: Colors.blue[600],
-          colorText: Colors.white,
-          borderRadius: 12,
-          margin: const EdgeInsets.all(16),
-          icon: const Icon(Icons.info, color: Colors.white, size: 20),
-        );
       }
-    });
+    }
+  }
+
+  String _getCustomMessage() {
+    if (widget.source == 'receipt_scan') {
+      final remainingScans = widget.scanData?['remaining_scans'] ?? 0;
+      if (remainingScans <= 0) {
+        return "You've used all your free receipt scans this month. Upgrade to Premium for unlimited scanning and advanced features!";
+      } else {
+        return "You have $remainingScans scans remaining. Upgrade to Premium for unlimited scanning and never worry about limits again!";
+      }
+    }
+    return "You've reached your free scan limit of 5. Upgrade to Premium for unlimited scanning and advanced features!";
   }
 
   @override
@@ -105,7 +146,7 @@ class PaywallScreenState extends State<PaywallScreen>
                         ),
                       ),
                       GestureDetector(
-                        onTap: () => Get.back(),
+                        onTap: () => Navigator.of(context).pop(false),
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
@@ -137,7 +178,7 @@ class PaywallScreenState extends State<PaywallScreen>
 
                   const SizedBox(height: 16),
 
-                  // Subtitle message
+                  // Custom subtitle message based on source
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -148,9 +189,9 @@ class PaywallScreenState extends State<PaywallScreen>
                         width: 1,
                       ),
                     ),
-                    child: const Text(
-                      "You've reached your free scan limit of 5. Upgrade to Premium for unlimited scanning and advanced features!",
-                      style: TextStyle(
+                    child: Text(
+                      _getCustomMessage(),
+                      style: const TextStyle(
                         color: tWhiteColor,
                         fontSize: 16,
                         height: 1.4,
@@ -230,6 +271,11 @@ class PaywallScreenState extends State<PaywallScreen>
                         description: 'Secure your data across all devices automatically',
                       ),
                       _buildFeatureItem(
+                        icon: Icons.file_download,
+                        title: 'Export & Reporting',
+                        description: 'Download your data in PDF and Excel formats',
+                      ),
+                      _buildFeatureItem(
                         icon: Icons.support_agent,
                         title: 'Priority Support',
                         description: 'Get help faster with premium customer support',
@@ -295,7 +341,7 @@ class PaywallScreenState extends State<PaywallScreen>
                   SizedBox(
                     width: double.infinity,
                     child: TextButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () => Navigator.of(context).pop(false),
                       style: TextButton.styleFrom(
                         foregroundColor: tWhiteColor.withOpacity(0.8),
                         padding: const EdgeInsets.symmetric(vertical: 16),
