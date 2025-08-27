@@ -32,6 +32,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
   late Animation<Offset> _slideAnimation;
   late Animation<double> _fadeAnimation;
   final authRepo = AuthenticationRepository.instance;
+  File? _lastUploadedFile;
 
   @override
   void initState() {
@@ -80,6 +81,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
 
   void _initializeData() {
     if (widget.receiptImage != null) {
+      _lastUploadedFile = widget.receiptImage!;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         controller.uploadAndProcessReceipt(widget.receiptImage!);
       });
@@ -115,6 +117,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
       final imageFile = await controller.captureReceiptImage(ImageSource.camera);
       if (imageFile != null) {
         controller.resetData();
+        _lastUploadedFile = imageFile;
         await controller.uploadAndProcessReceipt(imageFile);
       }
     } catch (e) {
@@ -133,6 +136,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
       final imageFile = await controller.captureReceiptImage(ImageSource.gallery);
       if (imageFile != null) {
         controller.resetData();
+        _lastUploadedFile = imageFile;
         await controller.uploadAndProcessReceipt(imageFile);
       }
     } catch (e) {
@@ -554,29 +558,43 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: tErrorColor.withOpacity(0.05),
+            color: controller.isDuplicateError.value
+                ? Colors.orange.withOpacity(0.05)
+                : tErrorColor.withOpacity(0.05),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: tErrorColor.withOpacity(0.1)),
+            border: Border.all(
+              color: controller.isDuplicateError.value
+                  ? Colors.orange.withOpacity(0.1)
+                  : tErrorColor.withOpacity(0.1),
+            ),
           ),
           child: Column(
             children: [
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: tErrorColor.withOpacity(0.1),
+                  color: controller.isDuplicateError.value
+                      ? Colors.orange.withOpacity(0.1)
+                      : tErrorColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Icon(
-                  Icons.error_outline_rounded,
+                child: Icon(
+                  controller.isDuplicateError.value
+                      ? Icons.warning_rounded
+                      : Icons.error_outline_rounded,
                   size: 48,
-                  color: tErrorColor,
+                  color: controller.isDuplicateError.value
+                      ? Colors.orange.shade600
+                      : tErrorColor,
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Processing Failed',
-                style: TextStyle(
-                  fontSize: 20,
+              Text(
+                controller.isDuplicateError.value
+                    ? 'Duplicate Receipt Detected'
+                    : 'Processing Failed',
+                style: const TextStyle(
+                  fontSize: 15,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
                 ),
@@ -594,29 +612,64 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
           ),
         ),
         const SizedBox(height: 32),
-        Row(
-          children: [
-            Expanded(
-              child: _buildActionButton(
-                label: 'Try Again',
-                icon: Icons.refresh_rounded,
-                isSecondary: true,
-                onPressed: _showImageSourceDialog,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildActionButton(
-                label: 'Reprocess',
-                icon: Icons.auto_fix_high_rounded,
-                isSecondary: false,
-                onPressed: controller.receiptId.value != null
-                    ? controller.reprocessReceipt
-                    : null,
-              ),
-            ),
-          ],
-        ),
+
+        // Show different buttons based on error type
+        Obx(() {
+          if (controller.isDuplicateError.value) {
+            // Duplicate-specific buttons
+            return Row(
+              children: [
+                Expanded(
+                  child: _buildActionButton(
+                    label: 'Cancel',
+                    icon: Icons.cancel_outlined,
+                    isSecondary: true,
+                    onPressed: _showImageSourceDialog, // Let them pick a different file
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildActionButton(
+                    label: 'Upload Anyway',
+                    icon: Icons.upload_rounded,
+                    isSecondary: false,
+                    onPressed: () async {
+                      // Trigger force upload - you'll need to store the file reference
+                      if (_lastUploadedFile != null) {
+                        await controller.uploadAndProcessReceipt(_lastUploadedFile!, forceUpload: true);
+                      }
+                    },
+                  ),
+                ),
+              ],
+            );
+          } else {
+            // Regular error buttons
+            return Row(
+              children: [
+                Expanded(
+                  child: _buildActionButton(
+                    label: 'Try Again',
+                    icon: Icons.refresh_rounded,
+                    isSecondary: true,
+                    onPressed: _showImageSourceDialog,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildActionButton(
+                    label: 'Reprocess',
+                    icon: Icons.auto_fix_high_rounded,
+                    isSecondary: false,
+                    onPressed: controller.receiptId.value != null
+                        ? controller.reprocessReceipt
+                        : null,
+                  ),
+                ),
+              ],
+            );
+          }
+        }),
       ],
     );
   }

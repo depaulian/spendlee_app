@@ -34,6 +34,7 @@ class ReceiptScanController extends GetxController {
   final extractedDate = Rxn<DateTime>();
   final extractedMerchant = Rxn<String>();
   final extractedText = Rxn<String>();
+  final isDuplicateError = false.obs;
 
   // Form controllers
   final TextEditingController amountController = TextEditingController();
@@ -212,32 +213,33 @@ class ReceiptScanController extends GetxController {
   }
 
   // Upload and process receipt
-  Future<void> uploadAndProcessReceipt(File receiptFile) async {
+  Future<void> uploadAndProcessReceipt(File receiptFile, {bool forceUpload = false}) async {
     try {
       isUploading.value = true;
       hasError.value = false;
       errorMessage.value = '';
 
       print('Uploading receipt file: ${receiptFile.path}');
+      print('Force upload: $forceUpload');
 
-      final uploadResult = await _receiptRepo.uploadReceipt(receiptFile);
+      final uploadResult = await _receiptRepo.uploadReceipt(receiptFile, forceUpload: forceUpload);
+      print('Uploading result: ${receiptFile.path}');
 
-      if (uploadResult['status'] == true && uploadResult['data'] != null) {
+      if (uploadResult['status'] == true) {
+        // Success - continue with processing
         final data = uploadResult['data'];
         receiptId.value = data['receipt_id'];
 
-        _showSuccessSnackbar(
-            'Receipt Uploaded',
-            'Receipt uploaded successfully. Processing...'
-        );
-
-        // Start processing the receipt
+        _showSuccessSnackbar('Receipt Uploaded', 'Receipt uploaded successfully. Processing...');
         await _processReceipt(data['receipt_id']);
-
-        // Update scan count after successful upload
         updateScanCount();
+      } else if (uploadResult['data'] != null && uploadResult['data']['is_duplicate'] == true) {
+        // Handle duplicate - set error message for UI to display
+        hasError.value = true;
+        isDuplicateError.value = true;
+        errorMessage.value = 'This receipt has already been uploaded on ${_formatUploadDate(uploadResult['data']['duplicate_uploaded_at'])}. Do you want to proceed with the upload anyway?';
       } else {
-        // Check if it's a paywall error
+        // Handle other errors (paywall, etc.)
         if (uploadResult['data'] != null && uploadResult['data']['paywall_triggered'] == true) {
           throw PaywallException(uploadResult['message'] ?? 'Scan limit reached');
         }
@@ -250,6 +252,17 @@ class ReceiptScanController extends GetxController {
       _handleError('Upload failed', e);
     } finally {
       isUploading.value = false;
+    }
+  }
+
+  String _formatUploadDate(String? dateString) {
+    if (dateString == null) return 'unknown date';
+
+    try {
+      final date = DateTime.parse(dateString);
+      return '${date.day}/${date.month}/${date.year}';
+    } catch (e) {
+      return 'unknown date';
     }
   }
 
