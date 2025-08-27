@@ -12,7 +12,7 @@ class ReceiptRepository extends GetxController {
   final UserPreferences userPreferences = UserPreferences();
 
   // Single robust upload method using raw HTTP client
-  Future<Map<String, dynamic>> uploadReceipt(File receiptFile) async {
+  Future<Map<String, dynamic>> uploadReceipt(File receiptFile, {bool forceUpload = false}) async {
     try {
       final accessToken = await userPreferences.getAccessToken();
       if (accessToken == null) {
@@ -22,6 +22,10 @@ class ReceiptRepository extends GetxController {
           'data': null
         };
       }
+
+      final url = forceUpload
+          ? '$tReceiptUploadUrl?force_upload=true'
+          : tReceiptUploadUrl;
 
       // Validate file exists
       if (!await receiptFile.exists()) {
@@ -78,7 +82,7 @@ class ReceiptRepository extends GetxController {
 
       try {
         // Create request
-        final request = await client.postUrl(Uri.parse(tReceiptUploadUrl));
+        final request = await client.postUrl(Uri.parse(url));
 
         // Generate boundary
         final boundary = '----formdata-flutter-${DateTime.now().millisecondsSinceEpoch}';
@@ -134,6 +138,21 @@ class ReceiptRepository extends GetxController {
   Map<String, dynamic> _handleUploadResponse(int statusCode, String responseBody) {
     if (statusCode == 200) {
       final responseData = jsonDecode(responseBody);
+
+
+      if (responseData['is_duplicate'] == true) {
+        return {
+          'status': false,
+          'message': responseData['message'] ?? 'Duplicate receipt detected',
+          'data': {
+            'is_duplicate': true,
+            'duplicate_receipt_id': responseData['duplicate_receipt_id'],
+            'duplicate_filename': responseData['duplicate_filename'],
+            'duplicate_uploaded_at': responseData['duplicate_uploaded_at'],
+            'extracted_data': responseData['extracted_data'],
+          }
+        };
+      }
 
       // Check if paywall was triggered in successful response
       if (responseData['paywall_triggered'] == true) {
@@ -655,5 +674,18 @@ class ReceiptRepository extends GetxController {
       return response['data']['error_type'];
     }
     return 'unknown';
+  }
+
+  bool isDuplicateResponse(Map<String, dynamic> response) {
+    return response['status'] == false &&
+        response['data'] != null &&
+        response['data']['is_duplicate'] == true;
+  }
+
+  Map<String, dynamic>? getDuplicateInfo(Map<String, dynamic> response) {
+    if (isDuplicateResponse(response)) {
+      return response['data'];
+    }
+    return null;
   }
 }
