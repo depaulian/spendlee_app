@@ -1,4 +1,5 @@
 import 'package:expense_tracker/src/features/core/screens/settings/widgets/currency_selection_sheet.dart';
+import 'package:expense_tracker/src/features/core/screens/settings/widgets/premium_upgrade.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:expense_tracker/src/constants/colors.dart';
@@ -15,6 +16,10 @@ class AccountSettingsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Premium upgrade section (only shows if not premium)
+        const PremiumUpgradeSection(),
+
+        // Regular account settings
         const SectionHeader(title: 'Account Settings'),
         Obx(() {
           return ListTile(
@@ -35,6 +40,25 @@ class AccountSettingsSection extends StatelessWidget {
             onTap: () => _showCurrencySelection(context),
           );
         }),
+
+        // You can add more account settings here
+        ListTile(
+          leading: Icon(Icons.person, color: tPrimaryColor),
+          title: Text('Edit Profile', style: TextStyle(color: tDarkColor)),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () {
+            // Navigate to profile edit screen
+          },
+        ),
+
+        ListTile(
+          leading: Icon(Icons.security, color: tPrimaryColor),
+          title: Text('Security', style: TextStyle(color: tDarkColor)),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () {
+            // Navigate to security settings
+          },
+        ),
       ],
     );
   }

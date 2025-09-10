@@ -72,16 +72,7 @@ class HomeController extends GetxController {
 
   Future<void> _loadBalanceData() async {
     try {
-      final now = DateTime.now();
-      final startOfMonth = DateTime(now.year, now.month, 1);
-      final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
-
-      print('Loading balance data from $startOfMonth to $endOfMonth');
-
-      final result = await _transactionRepo.getBalance(
-        startDate: startOfMonth,
-        endDate: endOfMonth,
-      );
+      final result = await _transactionRepo.getBalance();
 
       if (result['status'] == true && result['data'] != null) {
         final data = result['data'];
@@ -90,7 +81,6 @@ class HomeController extends GetxController {
         totalExpenses.value = _parseDouble(data['total_expenses']);
         currentBalance.value = totalIncome.value - totalExpenses.value;
 
-        print('Balance loaded: Income: ${totalIncome.value}, Expenses: ${totalExpenses.value}');
       } else {
         print('Balance API failed, calculating manually');
         await _calculateBalanceManually();

@@ -1,3 +1,4 @@
+import 'package:expense_tracker/src/constants/api_keys.dart';
 import 'package:expense_tracker/src/features/core/screens/summary/summary_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import 'package:expense_tracker/src/repository/authentication_repository/authent
 import 'package:expense_tracker/src/utils/app_bindings.dart';
 import 'package:expense_tracker/src/utils/theme/theme.dart';
 import 'package:expense_tracker/src/utils/theme/theme_controller.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'firebase_options.dart';
@@ -23,6 +25,7 @@ Future<void> main() async {
     // Initialize Firebase
     // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     // Initialize Authentication
+    await Purchases.configure(PurchasesConfiguration(tRevenueCatApiKey));
     Get.put(AuthenticationRepository());
 
     // Remove splash screen after initialization

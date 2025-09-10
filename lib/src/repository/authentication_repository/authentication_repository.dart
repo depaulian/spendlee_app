@@ -8,6 +8,7 @@ import 'package:expense_tracker/src/features/authentication/screens/login/login_
 import 'package:expense_tracker/src/features/core/screens/home/home_screen.dart';
 import 'package:expense_tracker/src/repository/preferences/user_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:purchases_flutter/purchases_flutter.dart';
 
 class AuthenticationRepository extends GetxController {
   static AuthenticationRepository get instance => Get.find();
@@ -48,6 +49,16 @@ class AuthenticationRepository extends GetxController {
 
       _user.value = user;
       _currentCurrency.value = currency;
+
+      // Identify user in RevenueCat if already logged in
+      if (user != null) {
+        try {
+          await Purchases.logIn(user.id.toString());
+          print('RevenueCat user identified on app init: ${user.id}');
+        } catch (e) {
+          print('Error identifying user in RevenueCat during init: $e');
+        }
+      }
 
       await _setInitialScreen(user);
       FlutterNativeSplash.remove();
@@ -128,6 +139,17 @@ class AuthenticationRepository extends GetxController {
     try {
       final userData = user ?? await userPreferences.getUser();
       _user.value = userData;
+      
+      // Identify user in RevenueCat when user data is set
+      if (userData != null) {
+        try {
+          await Purchases.logIn(userData.id.toString());
+          print('RevenueCat user identified: ${userData.id}');
+        } catch (e) {
+          print('Error identifying user in RevenueCat: $e');
+          // Don't throw error as this shouldn't block user login
+        }
+      }
     } catch (e) {
       print('Error setting user: $e');
       _user.value = null;
@@ -185,6 +207,15 @@ class AuthenticationRepository extends GetxController {
           print('Logout API call failed: $e');
         }
       }
+
+      // Log out from RevenueCat
+      try {
+        await Purchases.logOut();
+        print('RevenueCat user logged out');
+      } catch (e) {
+        print('Error logging out from RevenueCat: $e');
+      }
+
       // Clear all stored data
       await userPreferences.clearAll();
 

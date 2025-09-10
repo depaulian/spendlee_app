@@ -44,6 +44,10 @@ const String tExportReportUrl = '$tBaseUrl/reports/export';
 const String tTopMerchantsUrl = '$tBaseUrl/reports/top-merchants';
 const String tExpensePatternsUrl = '$tBaseUrl/reports/expense-patterns';
 
+//Paywall & Subscription Endpoints
+const String tPricingUrl = '$tBaseUrl/users/subscription/pricing';
+const String tPremiumStatusUrl = '$tBaseUrl/users/premium-status';
+
 // Health check endpoints
 const String tHealthCheckUrl = '$tBaseUrl/health';
 const String tRootUrl = '$tBaseUrl/';
