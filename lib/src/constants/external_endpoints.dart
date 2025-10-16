@@ -9,6 +9,7 @@ const String tRefreshTokenUrl = '$tBaseUrl/users/refresh';
 const String tUserProfileUrl = '$tBaseUrl/users/me';
 const String tLogoutUrl = '$tBaseUrl/users/logout';
 const String tGoogleLoginUrl = '$tBaseUrl/users/google-login';
+const String tCurrencyUrl = '$tBaseUrl/users/me/currency';
 
 // Transaction endpoints
 const String tTransactionsUrl = '$tBaseUrl/transactions/';

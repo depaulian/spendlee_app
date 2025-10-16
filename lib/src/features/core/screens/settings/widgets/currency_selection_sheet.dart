@@ -1,6 +1,8 @@
 
 import 'package:expense_tracker/src/constants/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:expense_tracker/src/features/core/controllers/currency_controller.dart';
 
 class CurrencySelectionSheet extends StatefulWidget {
   final dynamic authRepo;
@@ -19,6 +21,7 @@ class CurrencySelectionSheet extends StatefulWidget {
 class _CurrencySelectionSheetState extends State<CurrencySelectionSheet> {
   String searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  final CurrencyController _currencyController = Get.find<CurrencyController>();
 
   List<dynamic> get filteredCurrencies {
     if (searchQuery.isEmpty) {
@@ -35,6 +38,95 @@ class _CurrencySelectionSheetState extends State<CurrencySelectionSheet> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _showCurrencyChangeLoader(String currencyCode) async {
+    // Show the full-page loader dialog using Get.dialog
+    Get.dialog(
+      PopScope(
+        canPop: false, // Prevent back button dismissal
+        child: Scaffold(
+          backgroundColor: Colors.grey.shade50,
+          body: Center(
+            child: Container(
+              margin: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(40),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 30,
+                    offset: const Offset(0, 8),
+                    spreadRadius: 0,
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [tPrimaryColor, tSecondaryColor],
+                      ),
+                      borderRadius: BorderRadius.circular(50),
+                      boxShadow: [
+                        BoxShadow(
+                          color: tPrimaryColor.withOpacity(0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        strokeWidth: 4,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Obx(() => Text(
+                    _currencyController.statusMessage.value,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
+                  )),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Please wait while we update your currency settings and convert all amounts...',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      barrierDismissible: false,
+    );
+
+    // Start the currency change process immediately
+    await _performCurrencyChange(currencyCode);
+  }
+
+  Future<void> _performCurrencyChange(String currencyCode) async {
+    final success = await _currencyController.setCurrency(currencyCode);
+    
+    // Close the loader dialog using Get.back()
+    Get.back();
   }
 
   @override
@@ -262,8 +354,11 @@ class _CurrencySelectionSheetState extends State<CurrencySelectionSheet> {
                       color: Colors.grey[400],
                     ),
                     onTap: () {
-                      widget.authRepo.setCurrency(currency.code);
+                      // Close the currency sheet immediately
                       Navigator.pop(context);
+                      
+                      // Show full-page loader and start currency change
+                      _showCurrencyChangeLoader(currency.code);
                     },
                   ),
                 );

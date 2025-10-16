@@ -1,3 +1,4 @@
+import 'package:expense_tracker/src/features/core/controllers/currency_controller.dart';
 import 'package:expense_tracker/src/features/core/controllers/paywall_controller.dart';
 import 'package:expense_tracker/src/repository/currency_repository.dart';
 import 'package:expense_tracker/src/repository/paywall_repository/paywall_repository.dart';
@@ -14,6 +15,7 @@ class AppBinding extends Bindings{
     Get.lazyPut(() => CartController(), fenix: true);
 
     Get.lazyPut(() => CurrencyRepository(), fenix: true);
+    Get.lazyPut(() => CurrencyController(), fenix: true);
     Get.lazyPut(() => TransactionRepository(), fenix: true);
     Get.lazyPut(() => ReceiptRepository(), fenix: true);
 

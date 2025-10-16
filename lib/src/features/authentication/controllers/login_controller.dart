@@ -113,7 +113,7 @@ class LoginController extends GetxController {
         lastName: names['lastName'] ?? '',
         googleId: googleId,
       );
-
+      print("login response: $loginResponse");
       if (loginResponse['status']) {
         // Set user in authentication repository
         await authenticationRepo.setUser();

@@ -1,5 +1,6 @@
 import 'package:expense_tracker/src/constants/external_endpoints.dart';
 import 'package:expense_tracker/src/features/core/models/currency_model.dart';
+import 'package:expense_tracker/src/repository/authentication_repository/auth_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:get/get.dart';
@@ -14,7 +15,7 @@ class AuthenticationRepository extends GetxController {
   static AuthenticationRepository get instance => Get.find();
 
   late final Rx<User?> _user = Rx<User?>(null);
-  final Rx<Currency> _currentCurrency = AppCurrencies.getDefault().obs;
+  late final Rx<Currency> _currentCurrency;
   final UserPreferences userPreferences = UserPreferences();
 
   // Getters
@@ -32,6 +33,8 @@ class AuthenticationRepository extends GetxController {
   @override
   void onReady() {
     super.onReady();
+    // Initialize _currentCurrency with default before loading user's preference
+    _currentCurrency = AppCurrencies.getDefault().obs;
     initializeApp();
   }
 
@@ -39,41 +42,108 @@ class AuthenticationRepository extends GetxController {
     try {
       await UserPreferences.init();
 
-      final results = await Future.wait([
-        _loadUserData(),
-        _loadCurrency(),
-      ]);
+      // Try to refresh tokens first if user has refresh token
+      final refreshToken = await userPreferences.getRefreshToken();
+      final isLoggedIn = await userPreferences.isLoggedIn();
 
-      final user = results[0] as User?;
-      final currency = results[1] as Currency;
+      User? user;
+      Currency currency = AppCurrencies.getDefault();
+      if (refreshToken != null && isLoggedIn) {
+        // Attempt to refresh the access token with timeout
+        final authRepo = AuthRepository.instance;
+        final refreshResult = await authRepo.refreshToken(refreshToken)
+            .timeout(
+          Duration(seconds: 10),
+          onTimeout: () => {
+            'status': false,
+            'message': 'Network timeout',
+            'data': null
+          },
+        );
+        if (refreshResult['status'] == true) {
+          // Token refresh successful - load user data
+          print('Token refreshed successfully on startup');
+        } else {
+          // Token refresh failed - but we'll still load cached data
+          print('Token refresh failed: ${refreshResult['message']}');
+          // Show warning to user
+          Get.snackbar(
+            "Connection Issue",
+            "Could not refresh session. Some features may be limited.",
+            snackPosition: SnackPosition.TOP,
+            backgroundColor: Colors.orange,
+            colorText: Colors.white,
+            duration: Duration(seconds: 3),
+          );
+        }
+
+        // Load user data (from cache or after successful refresh)
+        final results = await Future.wait([
+          _loadUserData(),
+          _loadCurrency(),
+        ]);
+
+        user = results[0] as User?;
+        currency = results[1] as Currency;
+
+        // Identify user in RevenueCat if user data exists
+        if (user != null) {
+          try {
+            await Purchases.logIn(user.id.toString());
+            print('RevenueCat user identified on app init: ${user.id}');
+          } catch (e) {
+            print('Error identifying user in RevenueCat during init: $e');
+          }
+        }
+      } else {
+        // No refresh token or not logged in
+        user = null;
+      }
 
       _user.value = user;
       _currentCurrency.value = currency;
 
-      // Identify user in RevenueCat if already logged in
-      if (user != null) {
-        try {
-          await Purchases.logIn(user.id.toString());
-          print('RevenueCat user identified on app init: ${user.id}');
-        } catch (e) {
-          print('Error identifying user in RevenueCat during init: $e');
-        }
-      }
-
       await _setInitialScreen(user);
       FlutterNativeSplash.remove();
+
     } catch (error) {
       print('Initialization error: $error');
+
+      // Try to load cached data on any error
+      try {
+        final cachedUser = await _loadUserData();
+        final cachedCurrency = await _loadCurrency();
+
+        _user.value = cachedUser;
+        _currentCurrency.value = cachedCurrency;
+
+        await _setInitialScreen(cachedUser);
+        FlutterNativeSplash.remove();
+
+        if (cachedUser != null) {
+          Get.snackbar(
+            "Offline Mode",
+            "Running with cached data. Some features may be unavailable.",
+            snackPosition: SnackPosition.TOP,
+            backgroundColor: Colors.orange,
+            colorText: Colors.white,
+          );
+        }
+        return;
+      } catch (e) {
+        print('Could not load cached data: $e');
+      }
+
+      // Last resort - go to login
       _currentCurrency.value = AppCurrencies.getDefault();
       _user.value = null;
 
-      // Navigate to login screen on error
       Get.offAll(() => const LoginScreen());
       FlutterNativeSplash.remove();
 
       Get.snackbar(
         "Error",
-        "Could not initialize app. Please try again.",
+        "Could not initialize app. Please check your connection.",
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -103,27 +173,11 @@ class AuthenticationRepository extends GetxController {
     try {
       final currency = AppCurrencies.findByCode(currencyCode);
       if (currency != null) {
-        await userPreferences.setCurrency(currencyCode);
         _currentCurrency.value = currency;
-
-        Get.snackbar(
-          "Success",
-          "Currency updated to ${currency.name}",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
-      } else {
-        throw Exception('Currency not found');
       }
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        "Could not update currency. Please try again.",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      print('Error setting currency locally: $e');
+      _currentCurrency.value = AppCurrencies.getDefault();
     }
   }
 
