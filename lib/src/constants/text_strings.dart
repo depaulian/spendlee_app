@@ -44,8 +44,8 @@ const String tOnBoardingCounter3 = "3/3";
 
 
 // -- Welcome Screen Text
-const String tWelcomeTitle = "Welcome to LifeBlood";
-const String tWelcomeSubTitle = "Sickle Cell, Blood Management and Reporting tool";
+const String tWelcomeTitle = "Welcome to Spendlee";
+const String tWelcomeSubTitle = "Your money, simplified.";
 
 
 // -- Login Screen Text
