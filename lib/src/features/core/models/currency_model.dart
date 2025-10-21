@@ -176,6 +176,11 @@ class AppCurrencies {
     Currency(code: 'ZAR', name: 'South African Rand', symbol: 'R'),
     Currency(code: 'ZMW', name: 'Zambian Kwacha', symbol: 'ZK'),
     Currency(code: 'ZWL', name: 'Zimbabwean Dollar', symbol: 'Z\$'),
+    //Additional Codes
+    Currency(code: 'KSHS', name: 'Kenyan Shilling', symbol: 'KSh'),
+    Currency(code: 'TSHS', name: 'Tanzanian Shilling', symbol: 'TSh'),
+    Currency(code: 'UGSH', name: 'Ugandan Shilling', symbol: 'USh'),
+    Currency(code: 'USH', name: 'Ugandan Shilling', symbol: 'USh'),
   ];
 
   static Currency getDefault() => all.firstWhere((c) => c.code == 'USD');

@@ -90,7 +90,21 @@ class UserPreferences {
   // Currency operations
   Future<String> getCurrencyCode() async {
     if (_preferences == null) await init();
-    return _preferences!.getString(_currencyKey) ?? 'USD';
+    
+    // First check if user has a stored preference
+    String? storedCurrency = _preferences!.getString(_currencyKey);
+    if (storedCurrency != null) {
+      return storedCurrency;
+    }
+    
+    // If no stored preference, get user's default currency
+    final user = await getUser();
+    if (user != null) {
+      return user.defaultCurrency;
+    }
+    
+    // Fallback to USD if no user or default currency
+    return 'USD';
   }
 
   Future<Currency> getCurrency() async {

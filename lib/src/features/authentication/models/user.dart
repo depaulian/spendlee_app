@@ -8,6 +8,7 @@ class User {
   final bool isPremium;
   final DateTime? trialEndDate;
   final int monthlyScansUsed;
+  final String defaultCurrency;
   final DateTime createdAt;
 
   User({
@@ -20,6 +21,7 @@ class User {
     required this.isPremium,
     this.trialEndDate,
     required this.monthlyScansUsed,
+    required this.defaultCurrency,
     required this.createdAt,
   });
 
@@ -37,6 +39,7 @@ class User {
           ? DateTime.parse(json['trial_end_date'])
           : null,
       monthlyScansUsed: json['monthly_scans_used'],
+      defaultCurrency: json['default_currency'],
       createdAt: DateTime.parse(json['created_at']),
     );
   }
@@ -57,6 +60,7 @@ class User {
       'is_premium': isPremium,
       'trial_end_date': trialEndDate?.toIso8601String(),
       'monthly_scans_used': monthlyScansUsed,
+      'default_currency': defaultCurrency,
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -88,6 +92,7 @@ class User {
     bool? isPremium,
     DateTime? trialEndDate,
     int? monthlyScansUsed,
+    String? defaultCurrency,
     DateTime? createdAt,
   }) {
     return User(
@@ -100,6 +105,7 @@ class User {
       isPremium: isPremium ?? this.isPremium,
       trialEndDate: trialEndDate ?? this.trialEndDate,
       monthlyScansUsed: monthlyScansUsed ?? this.monthlyScansUsed,
+      defaultCurrency: defaultCurrency?? this.defaultCurrency,
       createdAt: createdAt ?? this.createdAt,
     );
   }

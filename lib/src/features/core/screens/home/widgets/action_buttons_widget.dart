@@ -188,14 +188,14 @@ class ActionButtons extends StatelessWidget {
                                 ? Icons.workspace_premium_rounded
                                 : Icons.check_circle_rounded,
                             size: 16,
-                            color: controller.isPremium.value ? tTertiaryColor : tSuccessColor,
+                            color: controller.isPremium.value ? tSecondaryColor : tSuccessColor,
                           ),
                           const SizedBox(width: 6),
                           Text(
                             controller.getStatusMessage(),
                             style: TextStyle(
                               fontSize: 13,
-                              color: controller.isPremium.value ? tTertiaryColor : tSuccessColor,
+                              color: controller.isPremium.value ? tSecondaryColor : tSuccessColor,
                               fontWeight: FontWeight.w600,
                             ),
                           ),

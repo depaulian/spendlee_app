@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:expense_tracker/src/constants/api_keys.dart';
 import 'package:expense_tracker/src/features/core/screens/summary/summary_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -25,7 +27,12 @@ Future<void> main() async {
     // Initialize Firebase
     // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     // Initialize Authentication
-    await Purchases.configure(PurchasesConfiguration(tRevenueCatApiKey));
+    if (Platform.isAndroid) {
+      await Purchases.configure(PurchasesConfiguration(tRevenueCatApiKeyAndroid));
+    }
+    else if (Platform.isIOS) {
+      await Purchases.configure(PurchasesConfiguration(tRevenueCatApiKeyiOS));
+    }
     Get.put(AuthenticationRepository());
 
     // Remove splash screen after initialization

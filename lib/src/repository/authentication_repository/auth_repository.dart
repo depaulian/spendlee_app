@@ -86,6 +86,7 @@ class AuthRepository extends ChangeNotifier {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
 
+        print(response.body);
         // Save tokens from Google login response
         await UserPreferences().saveAccessToken(responseData['access_token']);
         await UserPreferences().saveRefreshToken(responseData['refresh_token']);
@@ -116,6 +117,44 @@ class AuthRepository extends ChangeNotifier {
       return {
         'status': false,
         'message': 'Network error during Google login',
+        'data': error.toString()
+      };
+    }
+  }
+
+
+  Future<Map<String, dynamic>> setDefaultCurrency(String currencyCode, String accessToken) async {
+    try {
+      final response = await http.post(
+        Uri.parse(tCurrencyUrl),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'default_currency': currencyCode
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final userData = jsonDecode(response.body);
+        //update currency
+        return {
+          'status': true,
+          'message': 'Currency Successfully Set',
+          'data': userData
+        };
+      } else {
+        return {
+          'status': false,
+          'message': 'Failed to get user profile',
+          'data': null
+        };
+      }
+    } catch (error) {
+      return {
+        'status': false,
+        'message': 'Error getting user profile',
         'data': error.toString()
       };
     }
@@ -157,9 +196,8 @@ class AuthRepository extends ChangeNotifier {
   Future<Map<String, dynamic>> refreshToken(String refreshToken) async {
     try {
       final response = await http.post(
-        Uri.parse(tRefreshTokenUrl),
+        Uri.parse('$tRefreshTokenUrl?refresh_token=$refreshToken'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'refresh_token': refreshToken}),
       );
 
       if (response.statusCode == 200) {
