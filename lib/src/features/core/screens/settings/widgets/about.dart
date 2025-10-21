@@ -150,15 +150,6 @@ class AboutSection extends StatelessWidget {
                             // Close loading indicator
                             Get.back();
 
-                            // Show success message
-                            Get.snackbar(
-                              'Success',
-                              'You have been logged out successfully',
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: Colors.green,
-                              colorText: Colors.white,
-                              duration: Duration(seconds: 3),
-                            );
                           } catch (e) {
                             // Close loading indicator if still open
                             if (Get.isDialogOpen ?? false) {

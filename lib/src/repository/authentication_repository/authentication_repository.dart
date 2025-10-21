@@ -279,12 +279,12 @@ class AuthenticationRepository extends GetxController {
       _currentCurrency.value = AppCurrencies.getDefault();
 
       // Navigate to login screen
-      Get.offAll(() => const LoginScreen());
+      Get.offAll(() => const WelcomeScreen());
 
     } catch (e) {
       print('Error during logout: $e');
       // Force logout even if there's an error
-      Get.offAll(() => const LoginScreen());
+      Get.offAll(() => const WelcomeScreen());
     }
   }
 

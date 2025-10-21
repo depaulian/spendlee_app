@@ -1,3 +1,4 @@
+import 'package:expense_tracker/src/features/authentication/screens/email_verification/email_verification_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:expense_tracker/src/constants/colors.dart';
@@ -185,7 +186,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                             elevation: 8,
                             shadowColor: tSecondaryColor.withOpacity(0.5),
                           ),
-                          onPressed: () => Get.to(() => const RegisterScreen()),
+                          onPressed: () => Get.to(() => const EmailVerificationScreen()),
                           child: Text(
                             tSignup.toUpperCase(),
                             style: const TextStyle(

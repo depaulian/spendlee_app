@@ -9,6 +9,186 @@ import 'package:http/http.dart' as http;
 class AuthRepository extends ChangeNotifier {
   static AuthRepository get instance => Get.find();
 
+  // Check email availability
+  Future<Map<String, dynamic>> checkEmailAvailability(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$tBaseUrl/users/check-availability?email=${Uri.encodeComponent(email)}'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return {
+          'status': true,
+          'data': responseData['email']
+        };
+      } else {
+        return {
+          'status': false,
+          'message': 'Failed to check email availability',
+        };
+      }
+    } catch (error) {
+      return {
+        'status': false,
+        'message': 'Network error occurred',
+        'data': error.toString()
+      };
+    }
+  }
+
+  // Send verification code to email
+  Future<Map<String, dynamic>> sendVerificationCode(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$tBaseUrl/users/send-verification-code'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return {
+          'status': true,
+          'message': responseData['message'],
+          'expires_in_minutes': responseData['expires_in_minutes']
+        };
+      } else {
+        final errorData = jsonDecode(response.body);
+        return {
+          'status': false,
+          'message': errorData['detail'] ?? 'Failed to send verification code',
+        };
+      }
+    } catch (error) {
+      return {
+        'status': false,
+        'message': 'Network error occurred',
+        'data': error.toString()
+      };
+    }
+  }
+
+  // Verify email code
+  Future<Map<String, dynamic>> verifyEmailCode(String email, String code) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$tBaseUrl/users/verify-code'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'code': code,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return {
+          'status': true,
+          'message': responseData['message'],
+          'verification_token': responseData['verification_token']
+        };
+      } else {
+        final errorData = jsonDecode(response.body);
+        return {
+          'status': false,
+          'message': errorData['detail'] ?? 'Invalid verification code',
+        };
+      }
+    } catch (error) {
+      return {
+        'status': false,
+        'message': 'Network error occurred',
+        'data': error.toString()
+      };
+    }
+  }
+
+  // Resend verification code
+  Future<Map<String, dynamic>> resendVerificationCode(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$tBaseUrl/users/resend-verification-code'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return {
+          'status': true,
+          'message': responseData['message'],
+          'expires_in_minutes': responseData['expires_in_minutes']
+        };
+      } else if (response.statusCode == 429) {
+        final errorData = jsonDecode(response.body);
+        final retryAfter = response.headers['retry-after'];
+        return {
+          'status': false,
+          'message': errorData['detail'] ?? 'Too many attempts',
+          'retry_after': retryAfter
+        };
+      } else {
+        final errorData = jsonDecode(response.body);
+        return {
+          'status': false,
+          'message': errorData['detail'] ?? 'Failed to resend code',
+        };
+      }
+    } catch (error) {
+      return {
+        'status': false,
+        'message': 'Network error occurred',
+        'data': error.toString()
+      };
+    }
+  }
+
+  // Complete registration
+  Future<Map<String, dynamic>> completeRegistration({
+    required String verificationToken,
+    required String username,
+    required String password,
+    required String firstName,
+    required String lastName,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$tBaseUrl/users/complete-registration'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'verification_token': verificationToken,
+          'username': username,
+          'password': password,
+          'first_name': firstName,
+          'last_name': lastName,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        return {
+          'status': true,
+          'message': 'Registration completed successfully',
+          'data': responseData
+        };
+      } else {
+        final errorData = jsonDecode(response.body);
+        return {
+          'status': false,
+          'message': errorData['detail'] ?? 'Registration failed',
+        };
+      }
+    } catch (error) {
+      return {
+        'status': false,
+        'message': 'Network error occurred',
+        'data': error.toString()
+      };
+    }
+  }
+
   Future<Map<String, dynamic>> loginUser(String username, String password) async {
     notifyListeners();
 
