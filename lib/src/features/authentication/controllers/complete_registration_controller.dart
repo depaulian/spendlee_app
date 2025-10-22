@@ -83,6 +83,7 @@ class CompleteRegistrationController extends GetxController {
 
       try {
         final result = await authRepo.checkEmailAvailability(username: username);
+        print(result);
 
         if (result['status']) {
           final usernameData = result['data']['username'];
@@ -206,6 +207,7 @@ class CompleteRegistrationController extends GetxController {
         firstName: firstNameController.text.trim(),
         lastName: lastNameController.text.trim(),
       );
+
 
       if (result['status']) {
         // Set user in authentication repository if needed

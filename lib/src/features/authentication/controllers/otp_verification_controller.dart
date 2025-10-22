@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:expense_tracker/src/features/authentication/screens/complete_registration/complete_registration_screen.dart';
 import 'package:expense_tracker/src/repository/authentication_repository/auth_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -152,11 +153,10 @@ class OTPVerificationController extends GetxController {
         // Navigate to complete registration screen
         await Future.delayed(const Duration(milliseconds: 500));
 
-        // TODO: Navigate to CompleteRegistrationScreen with verification token
-        // Get.off(() => CompleteRegistrationScreen(
-        //   email: email,
-        //   verificationToken: result['verification_token'],
-        // ));
+        Get.off(() => CompleteRegistrationScreen(
+          email: email,
+          verificationToken: result['verification_token'],
+        ));
 
         print('Verification token: ${result['verification_token']}');
         print('Email: $email');

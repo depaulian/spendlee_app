@@ -33,7 +33,7 @@ class OTPDigitField extends StatelessWidget {
         focusNode: focusNode,
         textAlign: TextAlign.center,
         keyboardType: TextInputType.number,
-        maxLength: 1,
+        maxLength: 6, // Allow multiple digits for paste
         style: const TextStyle(
           color: tWhiteColor,
           fontSize: 24,
@@ -69,6 +69,13 @@ class OTPDigitField extends StatelessWidget {
           ),
         ),
         onChanged: (value) {
+          // Handle paste (multiple digits)
+          if (value.length > 1 && onPaste != null) {
+            onPaste!(value);
+            return;
+          }
+
+          // Handle single digit entry
           if (value.length == 1) {
             if (nextFocusNode != null) {
               nextFocusNode!.requestFocus();
@@ -82,13 +89,18 @@ class OTPDigitField extends StatelessWidget {
             }
           }
 
+          // Handle backspace
           if (value.isEmpty && previousFocusNode != null) {
             previousFocusNode!.requestFocus();
           }
-
-          // Handle paste on first field
-          if (isFirst && value.length > 1 && onPaste != null) {
-            onPaste!(value);
+        },
+        onTap: () {
+          // Select all text when tapped for easy replacement
+          if (controller.text.isNotEmpty) {
+            controller.selection = TextSelection(
+              baseOffset: 0,
+              extentOffset: controller.text.length,
+            );
           }
         },
       ),

@@ -50,7 +50,8 @@ class EmailVerificationController extends GetxController {
         final result = await authRepo.checkEmailAvailability(email:email);
 
         if (result['status']) {
-          final emailData = result['data'];
+          final emailData = result['data']['email'];
+          emailData['available'];
 
           if (emailData['available']) {
             emailAvailable.value = true;
@@ -95,6 +96,7 @@ class EmailVerificationController extends GetxController {
 
     try {
       final result = await authRepo.sendVerificationCode(emailController.text.trim());
+      print(result);
 
       if (result['status']) {
 

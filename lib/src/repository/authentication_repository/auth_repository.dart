@@ -54,7 +54,7 @@ class AuthRepository extends ChangeNotifier {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email}),
       );
-
+      print(response.body);
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         return {
@@ -173,8 +173,7 @@ class AuthRepository extends ChangeNotifier {
           'last_name': lastName,
         }),
       );
-
-      if (response.statusCode == 200) {
+      if (response.statusCode == 201) {
         final responseData = jsonDecode(response.body);
 
         // Save tokens from Spendlee API response
@@ -289,7 +288,6 @@ class AuthRepository extends ChangeNotifier {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
 
-        print(response.body);
         // Save tokens from Google login response
         await UserPreferences().saveAccessToken(responseData['access_token']);
         await UserPreferences().saveRefreshToken(responseData['refresh_token']);
