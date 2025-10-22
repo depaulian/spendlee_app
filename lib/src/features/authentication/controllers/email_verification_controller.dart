@@ -47,7 +47,7 @@ class EmailVerificationController extends GetxController {
       emailError.value = '';
 
       try {
-        final result = await authRepo.checkEmailAvailability(email);
+        final result = await authRepo.checkEmailAvailability(email:email);
 
         if (result['status']) {
           final emailData = result['data'];

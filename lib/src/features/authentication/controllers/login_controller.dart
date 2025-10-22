@@ -48,16 +48,6 @@ class LoginController extends GetxController {
       if (loginResponse['status']) {
         // Set user in authentication repository if needed
         await authenticationRepo.setUser();
-
-        Get.snackbar(
-          "Success",
-          "Login successful!",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green.shade400,
-          colorText: Colors.white,
-          duration: const Duration(seconds: 2),
-        );
-
         // Navigate to home screen
         Get.offAll(() => const HomeScreenPage());
       } else {

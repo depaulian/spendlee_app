@@ -149,15 +149,6 @@ class OTPVerificationController extends GetxController {
       final result = await authRepo.verifyEmailCode(email, otp);
 
       if (result['status']) {
-        Get.snackbar(
-          'Success',
-          'Email verified successfully!',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          duration: const Duration(seconds: 2),
-        );
-
         // Navigate to complete registration screen
         await Future.delayed(const Duration(milliseconds: 500));
 
@@ -202,13 +193,6 @@ class OTPVerificationController extends GetxController {
       final result = await authRepo.resendVerificationCode(email);
 
       if (result['status']) {
-        Get.snackbar(
-          'Success',
-          'Verification code sent!',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
 
         clearOTP();
 

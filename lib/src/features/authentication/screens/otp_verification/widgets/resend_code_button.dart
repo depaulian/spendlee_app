@@ -20,7 +20,7 @@ class ResendCodeButton extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
-                  'Resend available in ${controller.resendTimerText}',
+                  'Resend in ${controller.resendTimerText}',
                   style: TextStyle(
                     color: tWhiteColor.withOpacity(0.6),
                     fontSize: 13,
@@ -44,10 +44,9 @@ class ResendCodeButton extends StatelessWidget {
                   : Text(
                 'Didn\'t receive code? Resend',
                 style: TextStyle(
-                  color: canResend ? tSecondaryColor : tWhiteColor.withOpacity(0.4),
+                  color: canResend ? tWhiteColor : tWhiteColor.withOpacity(0.4),
                   fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  decoration: canResend ? TextDecoration.underline : null,
+                  fontWeight: canResend ? FontWeight.w900 : FontWeight.w400,
                 ),
               ),
             ),

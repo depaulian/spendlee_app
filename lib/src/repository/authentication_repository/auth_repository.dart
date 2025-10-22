@@ -9,11 +9,19 @@ import 'package:http/http.dart' as http;
 class AuthRepository extends ChangeNotifier {
   static AuthRepository get instance => Get.find();
 
-  // Check email availability
-  Future<Map<String, dynamic>> checkEmailAvailability(String email) async {
+  Future<Map<String, dynamic>> checkEmailAvailability({String? email, String? username}) async {
     try {
+      String url = '$tBaseUrl/users/check-availability?';
+      if (email != null) {
+        url += 'email=${Uri.encodeComponent(email)}';
+      }
+      if (username != null) {
+        if (email != null) url += '&';
+        url += 'username=${Uri.encodeComponent(username)}';
+      }
+
       final response = await http.post(
-        Uri.parse('$tBaseUrl/users/check-availability?email=${Uri.encodeComponent(email)}'),
+        Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -21,12 +29,12 @@ class AuthRepository extends ChangeNotifier {
         final responseData = jsonDecode(response.body);
         return {
           'status': true,
-          'data': responseData['email']
+          'data': responseData
         };
       } else {
         return {
           'status': false,
-          'message': 'Failed to check email availability',
+          'message': 'Failed to check availability',
         };
       }
     } catch (error) {
@@ -166,18 +174,33 @@ class AuthRepository extends ChangeNotifier {
         }),
       );
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        return {
-          'status': true,
-          'message': 'Registration completed successfully',
-          'data': responseData
-        };
+
+        // Save tokens from Spendlee API response
+        await UserPreferences().saveAccessToken(responseData['access_token']);
+        await UserPreferences().saveRefreshToken(responseData['refresh_token']);
+
+        // Get user profile after successful login
+        final userProfile = await getCurrentUserProfile(responseData['access_token']);
+
+        if (userProfile['status']) {
+          await UserPreferences().saveUser(User.fromSpendleeJson(userProfile['data']));
+
+          return {
+            'status': true,
+            'message': 'Successfully Logged In',
+            'data': userProfile['data']
+          };
+        } else {
+          return userProfile;
+        }
       } else {
         final errorData = jsonDecode(response.body);
         return {
           'status': false,
-          'message': errorData['detail'] ?? 'Registration failed',
+          'message': 'Registration failed',
+          'data': errorData['detail'] ?? 'Invalid credentials'
         };
       }
     } catch (error) {
