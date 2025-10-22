@@ -1,4 +1,5 @@
 import 'package:expense_tracker/src/constants/external_endpoints.dart';
+import 'package:expense_tracker/src/features/authentication/screens/welcome/welcome_screen.dart';
 import 'package:expense_tracker/src/features/core/models/currency_model.dart';
 import 'package:expense_tracker/src/repository/authentication_repository/auth_repository.dart';
 import 'package:flutter/material.dart';
@@ -227,7 +228,7 @@ class AuthenticationRepository extends GetxController {
       Get.offAll(() => const HomeScreenPage());
     } else {
       // User is not logged in or data is invalid
-      Get.offAll(() => const LoginScreen());
+      Get.offAll(() => const WelcomeScreen());
     }
   }
 
@@ -278,12 +279,12 @@ class AuthenticationRepository extends GetxController {
       _currentCurrency.value = AppCurrencies.getDefault();
 
       // Navigate to login screen
-      Get.offAll(() => const LoginScreen());
+      Get.offAll(() => const WelcomeScreen());
 
     } catch (e) {
       print('Error during logout: $e');
       // Force logout even if there's an error
-      Get.offAll(() => const LoginScreen());
+      Get.offAll(() => const WelcomeScreen());
     }
   }
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:expense_tracker/src/constants/colors.dart';
-import 'package:expense_tracker/src/features/authentication/screens/login/login_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:expense_tracker/src/features/core/screens/settings/widgets/section_header.dart';
 import 'package:expense_tracker/src/repository/authentication_repository/authentication_repository.dart';
 
@@ -26,16 +26,24 @@ class AboutSection extends StatelessWidget {
           leading: Icon(Icons.privacy_tip, color: tPrimaryColor),
           title: Text('Privacy Policy', style: TextStyle(color: tDarkColor)),
           trailing: Icon(Icons.chevron_right),
-          onTap: () {
-            // Handle privacy policy tap
+          onTap: () async {
+            const privacyPolicyUrl = 'https://spendlee.afyago.com/privacy';
+            final Uri uri = Uri.parse(privacyPolicyUrl);
+            if (!await launchUrl(uri)) {
+              throw Exception('Could not launch $uri');
+            }
           },
         ),
         ListTile(
           leading: Icon(Icons.description, color: tPrimaryColor),
           title: Text('Terms of Service', style: TextStyle(color: tDarkColor)),
           trailing: Icon(Icons.chevron_right),
-          onTap: () {
-            // Handle terms of service tap
+          onTap: () async {
+            const termsUrl = 'https://spendlee.afyago.com/terms';
+            final Uri uri = Uri.parse(termsUrl);
+            if (!await launchUrl(uri)) {
+              throw Exception('Could not launch $uri');
+            }
           },
         ),
         ListTile(
@@ -142,15 +150,6 @@ class AboutSection extends StatelessWidget {
                             // Close loading indicator
                             Get.back();
 
-                            // Show success message
-                            Get.snackbar(
-                              'Success',
-                              'You have been logged out successfully',
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: Colors.green,
-                              colorText: Colors.white,
-                              duration: Duration(seconds: 3),
-                            );
                           } catch (e) {
                             // Close loading indicator if still open
                             if (Get.isDialogOpen ?? false) {

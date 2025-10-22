@@ -1,3 +1,4 @@
+import 'package:expense_tracker/src/features/authentication/screens/login/widgets/divider_with_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:expense_tracker/src/constants/image_strings.dart';
@@ -156,14 +157,7 @@ class LoginFormWidgetState extends State<LoginFormWidget> {
               ),
 
               const SizedBox(height: 20),
-              const SizedBox(
-                width: double.infinity,
-                child: Text(
-                  'OR',
-                  style: TextStyle(color: tWhiteColor),
-                  textAlign: TextAlign.center,
-                ),
-              ),
+              DividerWithText(),
               const SizedBox(height: 20),
 
               // Google Sign-In Button (with note about limited support)

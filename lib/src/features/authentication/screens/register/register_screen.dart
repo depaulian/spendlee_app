@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:expense_tracker/src/common_widgets/privacy_footer_dart.dart';
+import 'package:expense_tracker/src/common_widgets/form/minimal_form_header_widget.dart';
 import 'package:expense_tracker/src/constants/colors.dart';
 import 'package:expense_tracker/src/utils/theme/theme_controller.dart';
 import '../../../../constants/sizes.dart';
+import '../../../../constants/image_strings.dart';
+import 'widgets/register_form_widget.dart';
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatelessWidget {
+  const RegisterScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -36,8 +39,12 @@ class LoginScreen extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(tDefaultSize),
             child: Column(
-              children: [ // Make sure the form is scrollable
-
+              children: [
+                MinimalFormHeaderWidget(
+                  image: tLogo,
+                  heightBetween: 20,
+                ),
+                const RegisterFormWidget(),
                 const PrivacyFooterWidget(),
               ],
             ),

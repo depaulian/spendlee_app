@@ -14,21 +14,53 @@ class PrivacyFooterWidget extends StatelessWidget {
     return Column(
       children: [
         const SizedBox(height: 5.0),
-        TextButton(
-          onPressed: () async {
-            var privacyPolicyUrl = '#';
-            final Uri uri = Uri.parse(privacyPolicyUrl);
-            if (!await launchUrl(uri)) {
-            throw Exception('Could not launch $uri');
-            }
-          },
-          child: Text.rich(TextSpan(children: [
-            TextSpan(
-              text: tSignUpConsent,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color:tWhiteColor),
-            ),
-            const TextSpan(text: 'Privacy Policy', style: TextStyle(color: tSecondaryColor))
-          ])),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            children: [
+              Text(
+                tSignUpConsent,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: tWhiteColor),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton(
+                    onPressed: () async {
+                      const privacyPolicyUrl = 'https://spendlee.afyago.com/privacy';
+                      final Uri uri = Uri.parse(privacyPolicyUrl);
+                      if (!await launchUrl(uri)) {
+                        throw Exception('Could not launch $uri');
+                      }
+                    },
+                    child: const Text(
+                      'Privacy Policy',
+                      style: TextStyle(color: tSecondaryColor),
+                    ),
+                  ),
+                  const Text(
+                    ' & ',
+                    style: TextStyle(color: tWhiteColor),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      const termsUrl = 'https://spendlee.afyago.com/terms';
+                      final Uri uri = Uri.parse(termsUrl);
+                      if (!await launchUrl(uri)) {
+                        throw Exception('Could not launch $uri');
+                      }
+                    },
+                    child: const Text(
+                      'Terms of Service',
+                      style: TextStyle(color: tSecondaryColor),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ],
     );
