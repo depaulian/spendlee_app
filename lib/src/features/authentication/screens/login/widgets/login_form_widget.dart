@@ -1,3 +1,4 @@
+import 'package:expense_tracker/src/features/authentication/screens/forget_password/forget_password_mail.dart';
 import 'package:expense_tracker/src/features/authentication/screens/login/widgets/divider_with_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -7,7 +8,6 @@ import 'package:expense_tracker/src/constants/colors.dart';
 import 'package:expense_tracker/src/constants/sizes.dart';
 import 'package:expense_tracker/src/constants/text_strings.dart';
 import 'package:expense_tracker/src/features/authentication/controllers/login_controller.dart';
-import '../../forget_password/forget_password_options/forget_password_model_bottom_sheet.dart';
 
 class LoginFormWidget extends StatefulWidget {
   const LoginFormWidget({
@@ -108,7 +108,7 @@ class LoginFormWidgetState extends State<LoginFormWidget> {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () => ForgetPasswordScreen.buildShowModalBottomSheet(context),
+                  onPressed: () => Get.to(()=>ForgetPasswordMailScreen()),
                   child: const Text(tForgetPassword, style: TextStyle(color: tWhiteColor)),
                 ),
               ),
