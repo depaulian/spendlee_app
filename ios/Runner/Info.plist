@@ -20,6 +20,8 @@
     <string>This app uses the camera to take photos of your receipts for processing and expense tracking.</string>
 	<key>CLIENT_ID</key>
     <string>878311127040-qucecgfrdfcj02g67psht97pus5206tc.apps.googleusercontent.com</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Spendlee may use your location to help track spending patterns based on where you scan receipts. This is optional and helps you understand your spending habits.</string>
 	<key>CFBundleURLTypes</key>
     <array>
     	<dict>
