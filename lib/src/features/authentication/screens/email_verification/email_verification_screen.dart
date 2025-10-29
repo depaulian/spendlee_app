@@ -1,3 +1,4 @@
+import 'package:expense_tracker/src/common_widgets/privacy_footer_dart.dart';
 import 'package:expense_tracker/src/features/authentication/screens/email_verification/widgets/email_back_button.dart';
 import 'package:expense_tracker/src/features/authentication/screens/email_verification/widgets/email_background_decorations.dart';
 import 'package:expense_tracker/src/features/authentication/screens/email_verification/widgets/email_header.dart';
@@ -28,10 +29,12 @@ class EmailVerificationScreen extends StatelessWidget {
                   children: [
                     const SizedBox(height: 20),
                     const EmailBackButton(),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 20),
                     const EmailHeader(),
                     const SizedBox(height: 40),
                     const EmailInputForm(),
+                    const SizedBox(height: 40),
+                    const PrivacyFooterWidget(),
                   ],
                 ),
               ),

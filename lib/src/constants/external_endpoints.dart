@@ -1,6 +1,6 @@
 /* -- API End Points -- */
 
-const String tBaseUrl = 'https://spendlee.afyago.com';
+const String tBaseUrl = 'https://spendlee.com';
 
 // Authentication endpoints
 const String tLoginUrl = '$tBaseUrl/users/login';
@@ -53,3 +53,9 @@ const String tPremiumStatusUrl = '$tBaseUrl/users/premium-status';
 // Health check endpoints
 const String tHealthCheckUrl = '$tBaseUrl/health';
 const String tRootUrl = '$tBaseUrl/';
+
+//Legal endpoints
+const String tPrivacyUrl = '$tBaseUrl/privacy';
+const String tTosUrl = '$tBaseUrl/terms';
+//About
+const String tABoutUrl = tBaseUrl;
