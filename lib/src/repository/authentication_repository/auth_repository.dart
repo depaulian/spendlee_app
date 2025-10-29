@@ -211,6 +211,40 @@ class AuthRepository extends ChangeNotifier {
     }
   }
 
+  // Send password reset link to email
+  Future<Map<String, dynamic>> sendPasswordResetLink(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse(tForgotPasswordUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      print(response.body);
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return {
+          'status': true,
+          'message': responseData['message'],
+          'expires_in_hours': responseData['expires_in_hours']
+        };
+      } else {
+        final errorData = jsonDecode(response.body);
+        return {
+          'status': false,
+          'message': errorData['detail'] ?? 'Failed to send password reset link',
+        };
+      }
+    } catch (error) {
+      return {
+        'status': false,
+        'message': 'Network error occurred',
+        'data': error.toString()
+      };
+    }
+  }
+
   Future<Map<String, dynamic>> loginUser(String username, String password) async {
     notifyListeners();
 

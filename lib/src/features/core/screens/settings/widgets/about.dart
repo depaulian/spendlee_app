@@ -1,3 +1,4 @@
+import 'package:expense_tracker/src/constants/external_endpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:expense_tracker/src/constants/colors.dart';
@@ -18,8 +19,11 @@ class AboutSection extends StatelessWidget {
           leading: Icon(Icons.info_outline, color: tPrimaryColor),
           title: Text('About App', style: TextStyle(color: tDarkColor)),
           trailing: Icon(Icons.chevron_right),
-          onTap: () {
-            // Handle about tap
+          onTap: () async {
+            final Uri uri = Uri.parse(tABoutUrl);
+            if (!await launchUrl(uri)) {
+            throw Exception('Could not launch $uri');
+            }
           },
         ),
         ListTile(
@@ -27,8 +31,7 @@ class AboutSection extends StatelessWidget {
           title: Text('Privacy Policy', style: TextStyle(color: tDarkColor)),
           trailing: Icon(Icons.chevron_right),
           onTap: () async {
-            const privacyPolicyUrl = 'https://spendlee.afyago.com/privacy';
-            final Uri uri = Uri.parse(privacyPolicyUrl);
+            final Uri uri = Uri.parse(tPrivacyUrl);
             if (!await launchUrl(uri)) {
               throw Exception('Could not launch $uri');
             }
@@ -39,8 +42,7 @@ class AboutSection extends StatelessWidget {
           title: Text('Terms of Service', style: TextStyle(color: tDarkColor)),
           trailing: Icon(Icons.chevron_right),
           onTap: () async {
-            const termsUrl = 'https://spendlee.afyago.com/terms';
-            final Uri uri = Uri.parse(termsUrl);
+            final Uri uri = Uri.parse(tTosUrl);
             if (!await launchUrl(uri)) {
               throw Exception('Could not launch $uri');
             }

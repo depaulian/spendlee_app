@@ -1,3 +1,4 @@
+import 'package:expense_tracker/src/constants/external_endpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:expense_tracker/src/constants/colors.dart';
@@ -29,8 +30,7 @@ class PrivacyFooterWidget extends StatelessWidget {
                 children: [
                   TextButton(
                     onPressed: () async {
-                      const privacyPolicyUrl = 'https://spendlee.afyago.com/privacy';
-                      final Uri uri = Uri.parse(privacyPolicyUrl);
+                      final Uri uri = Uri.parse(tPrivacyUrl);
                       if (!await launchUrl(uri)) {
                         throw Exception('Could not launch $uri');
                       }
@@ -46,8 +46,7 @@ class PrivacyFooterWidget extends StatelessWidget {
                   ),
                   TextButton(
                     onPressed: () async {
-                      const termsUrl = 'https://spendlee.afyago.com/terms';
-                      final Uri uri = Uri.parse(termsUrl);
+                      final Uri uri = Uri.parse(tTosUrl);
                       if (!await launchUrl(uri)) {
                         throw Exception('Could not launch $uri');
                       }
