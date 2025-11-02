@@ -123,8 +123,8 @@ class LoginFormWidgetState extends State<LoginFormWidget> {
                       backgroundColor: WidgetStateProperty.all(tSecondaryColor),
                       side: WidgetStateProperty.all(BorderSide.none),
                     ),
-                    onPressed: controller.isLoading.value
-                        ? null // Disable button when loading
+                    onPressed: (controller.isLoading.value || controller.isGoogleLoading.value || controller.isAppleLoading.value)
+                        ? null // Disable button when any loading is active
                         : () {
                       if (formKey.currentState!.validate()) {
                         controller.loginUser(); // Call the updated login method
@@ -165,22 +165,47 @@ class LoginFormWidgetState extends State<LoginFormWidget> {
               Obx(
                     () => SizedBox(
                   width: double.infinity,
-                  child: OutlinedButton.icon(
-                    icon: Image.asset(
-                      tGoogleLogoImage,
-                      width: 24,
-                    ),
-                    label: const Text(
-                      'Continue with Google',
-                      style: TextStyle(color: tDarkColor),
-                    ),
-                    onPressed: controller.isLoading.value
+                  child: OutlinedButton(
+                    onPressed: (controller.isLoading.value || controller.isGoogleLoading.value || controller.isAppleLoading.value)
                         ? null
                         : () => controller.loginWithGoogle(),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       side: BorderSide.none,
                       backgroundColor: tWhiteColor,
+                    ),
+                    child: controller.isGoogleLoading.value
+                        ? const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: tDarkColor,
+                            strokeWidth: 2,
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          "Signing in...",
+                          style: TextStyle(color: tDarkColor),
+                        ),
+                      ],
+                    )
+                        : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          tGoogleLogoImage,
+                          width: 24,
+                        ),
+                        const SizedBox(width: 10),
+                        const Text(
+                          'Continue with Google',
+                          style: TextStyle(color: tDarkColor),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -191,23 +216,48 @@ class LoginFormWidgetState extends State<LoginFormWidget> {
               Obx(
                     () => SizedBox(
                   width: double.infinity,
-                  child: OutlinedButton.icon(
-                    icon: const Icon(
-                      Icons.apple,
-                      color: tWhiteColor,
-                      size: 24,
-                    ),
-                    label: const Text(
-                      'Continue with Apple',
-                      style: TextStyle(color: tWhiteColor),
-                    ),
-                    onPressed: controller.isLoading.value
+                  child: OutlinedButton(
+                    onPressed: (controller.isLoading.value || controller.isGoogleLoading.value || controller.isAppleLoading.value)
                         ? null
                         : () => controller.loginWithApple(),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       side: BorderSide.none,
                       backgroundColor: tDarkColor,
+                    ),
+                    child: controller.isAppleLoading.value
+                        ? const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: tWhiteColor,
+                            strokeWidth: 2,
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          "Signing in...",
+                          style: TextStyle(color: tWhiteColor),
+                        ),
+                      ],
+                    )
+                        : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.apple,
+                          color: tWhiteColor,
+                          size: 24,
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          'Continue with Apple',
+                          style: TextStyle(color: tWhiteColor),
+                        ),
+                      ],
                     ),
                   ),
                 ),

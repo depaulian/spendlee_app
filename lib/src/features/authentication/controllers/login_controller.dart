@@ -22,8 +22,10 @@ class LoginController extends GetxController {
   final login = TextEditingController();
   final password = TextEditingController();
 
-  // Loader
+  // Loaders
   final isLoading = false.obs;
+  final isGoogleLoading = false.obs;
+  final isAppleLoading = false.obs;
 
   // Email & Password Login (Updated for Spendlee API)
   Future<void> loginUser() async {
@@ -78,13 +80,13 @@ class LoginController extends GetxController {
   // Google Sign-In (Updated for Spendlee API)
   Future<void> loginWithGoogle() async {
     try {
-      isLoading.value = true;
+      isGoogleLoading.value = true;
 
       // Sign in with Google
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
         // User cancelled the sign-in
-        isLoading.value = false;
+        isGoogleLoading.value = false;
         return;
       }
 
@@ -147,14 +149,14 @@ class LoginController extends GetxController {
       // Sign out from Google on error
       await _googleSignIn.signOut();
     } finally {
-      isLoading.value = false;
+      isGoogleLoading.value = false;
     }
   }
 
   // Apple Sign-In
   Future<void> loginWithApple() async {
     try {
-      isLoading.value = true;
+      isAppleLoading.value = true;
 
       // Check if Apple Sign In is available
       if (!await SignInWithApple.isAvailable()) {
@@ -166,7 +168,7 @@ class LoginController extends GetxController {
           colorText: Colors.white,
           duration: const Duration(seconds: 3),
         );
-        isLoading.value = false;
+        isAppleLoading.value = false;
         return;
       }
 
@@ -224,6 +226,12 @@ class LoginController extends GetxController {
       }
 
     } catch (e) {
+      // Check if the error is due to user cancellation
+      if (e.toString().contains('UserCancel') || e.toString().contains('canceled')) {
+        // User cancelled - don't show error toast
+        return;
+      }
+      
       Get.snackbar(
         "Apple Sign-In Failed",
         "An error occurred during Apple sign-in",
@@ -233,7 +241,7 @@ class LoginController extends GetxController {
         duration: const Duration(seconds: 5),
       );
     } finally {
-      isLoading.value = false;
+      isAppleLoading.value = false;
     }
   }
 
