@@ -171,7 +171,7 @@ class LoginFormWidgetState extends State<LoginFormWidget> {
                       width: 24,
                     ),
                     label: const Text(
-                      'Sign In with Google',
+                      'Continue with Google',
                       style: TextStyle(color: tDarkColor),
                     ),
                     onPressed: controller.isLoading.value
@@ -185,22 +185,33 @@ class LoginFormWidgetState extends State<LoginFormWidget> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  label: const Text(
-                    'Sign Up with Email',
-                    style: TextStyle(color: tWhiteColor),
-                  ),
-                  onPressed: () => Get.to(()=>EmailVerificationScreen()),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: BorderSide.none,
-                    backgroundColor: tSecondaryColor,
+              const SizedBox(height: 15),
+
+              // Apple Sign-In Button
+              Obx(
+                    () => SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    icon: const Icon(
+                      Icons.apple,
+                      color: tWhiteColor,
+                      size: 24,
+                    ),
+                    label: const Text(
+                      'Continue with Apple',
+                      style: TextStyle(color: tWhiteColor),
+                    ),
+                    onPressed: controller.isLoading.value
+                        ? null
+                        : () => controller.loginWithApple(),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      side: BorderSide.none,
+                      backgroundColor: tDarkColor,
+                    ),
                   ),
                 ),
-              )
+              ),
             ],
           ),
         ),

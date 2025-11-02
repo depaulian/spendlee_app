@@ -9,6 +9,7 @@ const String tRefreshTokenUrl = '$tBaseUrl/users/refresh';
 const String tUserProfileUrl = '$tBaseUrl/users/me';
 const String tLogoutUrl = '$tBaseUrl/users/logout';
 const String tGoogleLoginUrl = '$tBaseUrl/users/google-login';
+const String tAppleLoginUrl = '$tBaseUrl/users/apple-login';
 const String tForgotPasswordUrl = '$tBaseUrl/users/forgot-password';
 const String tCurrencyUrl = '$tBaseUrl/users/me/currency';
 

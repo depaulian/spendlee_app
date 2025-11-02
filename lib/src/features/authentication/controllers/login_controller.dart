@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:expense_tracker/src/features/core/screens/home/home_screen.dart';
 import 'package:expense_tracker/src/repository/authentication_repository/auth_repository.dart';
 import 'package:expense_tracker/src/repository/authentication_repository/authentication_repository.dart';
@@ -145,6 +146,92 @@ class LoginController extends GetxController {
 
       // Sign out from Google on error
       await _googleSignIn.signOut();
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // Apple Sign-In
+  Future<void> loginWithApple() async {
+    try {
+      isLoading.value = true;
+
+      // Check if Apple Sign In is available
+      if (!await SignInWithApple.isAvailable()) {
+        Get.snackbar(
+          "Apple Sign-In Unavailable",
+          "Apple Sign-In is not available on this device",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange.shade400,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+        isLoading.value = false;
+        return;
+      }
+
+      // Sign in with Apple
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      // Extract user information
+      final String email = credential.email ?? '';
+        final String? givenName = credential.givenName;
+      final String? familyName = credential.familyName;
+      final String appleId = credential.userIdentifier ?? '';
+
+      // Handle case where email might be empty (returning users)
+      if (email.isEmpty) {
+        Get.snackbar(
+          "Apple Sign-In Error",
+          "Unable to retrieve email from Apple. Please try again or use a different sign-in method.",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red.shade400,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 5),
+        );
+        isLoading.value = false;
+        return;
+      }
+
+      // Login with Apple using Spendlee API
+      final loginResponse = await authRepo.loginWithApple(
+        email: email,
+        firstName: givenName ?? '',
+        lastName: familyName ?? '',
+        appleId: appleId,
+      );
+
+      if (loginResponse['status']) {
+        // Set user in authentication repository
+        await authenticationRepo.setUser();
+
+        Get.snackbar(
+          "Success",
+          "Apple login successful!",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green.shade400,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+        );
+
+        // Navigate to home screen
+        Get.offAll(() => const HomeScreenPage());
+      }
+
+    } catch (e) {
+      Get.snackbar(
+        "Apple Sign-In Failed",
+        "An error occurred during Apple sign-in",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade400,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 5),
+      );
     } finally {
       isLoading.value = false;
     }
