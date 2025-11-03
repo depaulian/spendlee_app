@@ -1,5 +1,7 @@
 import 'package:expense_tracker/src/features/core/screens/settings/widgets/currency_selection_sheet.dart';
 import 'package:expense_tracker/src/features/core/screens/settings/widgets/premium_upgrade.dart';
+import 'package:expense_tracker/src/features/core/screens/email_change/email_change_screen.dart';
+import 'package:expense_tracker/src/features/core/screens/profile_update/profile_update_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:expense_tracker/src/constants/colors.dart';
@@ -47,7 +49,16 @@ class AccountSettingsSection extends StatelessWidget {
           title: Text('Edit Profile', style: TextStyle(color: tDarkColor)),
           trailing: const Icon(Icons.chevron_right),
           onTap: () {
-            // Navigate to profile edit screen
+            Get.to(() => const ProfileUpdateScreen());
+          },
+        ),
+
+        ListTile(
+          leading: Icon(Icons.email, color: tPrimaryColor),
+          title: Text('Change Email', style: TextStyle(color: tDarkColor)),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () {
+            Get.to(() => const EmailChangeScreen());
           },
         ),
 

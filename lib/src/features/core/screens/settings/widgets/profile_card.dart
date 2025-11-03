@@ -56,11 +56,7 @@ class ProfileCard extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
-              IconButton(
-                icon: Icon(Icons.edit, color: tWhiteColor,),
-                onPressed: onEdit,
-              ),
+              )
             ],
           ),
         ),
