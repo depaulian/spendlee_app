@@ -2,6 +2,7 @@ import 'package:expense_tracker/src/features/core/screens/settings/widgets/curre
 import 'package:expense_tracker/src/features/core/screens/settings/widgets/premium_upgrade.dart';
 import 'package:expense_tracker/src/features/core/screens/email_change/email_change_screen.dart';
 import 'package:expense_tracker/src/features/core/screens/profile_update/profile_update_screen.dart';
+import 'package:expense_tracker/src/features/core/screens/change_password/change_password_screen.dart';
 import 'package:expense_tracker/src/features/core/screens/settings/widgets/security/security_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -60,6 +61,15 @@ class AccountSettingsSection extends StatelessWidget {
           trailing: const Icon(Icons.chevron_right),
           onTap: () {
             Get.to(() => const EmailChangeScreen());
+          },
+        ),
+
+        ListTile(
+          leading: Icon(Icons.lock, color: tPrimaryColor),
+          title: Text('Change Password', style: TextStyle(color: tDarkColor)),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () {
+            Get.to(() => const ChangePasswordScreen());
           },
         ),
 

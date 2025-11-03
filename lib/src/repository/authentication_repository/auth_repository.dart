@@ -697,6 +697,48 @@ class AuthRepository extends ChangeNotifier {
     }
   }
 
+  // Change password
+  Future<Map<String, dynamic>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final accessToken = await UserPreferences().getAccessToken();
+      
+      final response = await http.post(
+        Uri.parse('$tBaseUrl/users/me/change-password'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'current_password': currentPassword,
+          'new_password': newPassword,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return {
+          'status': true,
+          'message': responseData['message'] ?? 'Password changed successfully',
+        };
+      } else {
+        final errorData = jsonDecode(response.body);
+        return {
+          'status': false,
+          'message': errorData['detail'] ?? 'Failed to change password',
+        };
+      }
+    } catch (error) {
+      return {
+        'status': false,
+        'message': 'Network error occurred',
+        'data': error.toString()
+      };
+    }
+  }
+
   Future<void> logout() async {
     final accessToken = await UserPreferences().getAccessToken();
 

@@ -316,4 +316,21 @@ class AuthenticationRepository extends GetxController {
 
     return (freeScansLimit - monthlyScansUsed).clamp(0, freeScansLimit);
   }
+
+  // Change password method
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final authRepo = AuthRepository.instance;
+    
+    final result = await authRepo.changePassword(
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+    );
+    
+    if (!result['status']) {
+      throw Exception(result['message']);
+    }
+  }
 }
