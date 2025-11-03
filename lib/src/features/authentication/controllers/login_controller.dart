@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:expense_tracker/src/features/core/screens/home/home_screen.dart';
+import 'package:expense_tracker/src/features/authentication/screens/apple_email_confirmation/apple_email_confirmation_screen.dart';
 import 'package:expense_tracker/src/repository/authentication_repository/auth_repository.dart';
 import 'package:expense_tracker/src/repository/authentication_repository/authentication_repository.dart';
 
@@ -158,6 +160,20 @@ class LoginController extends GetxController {
     try {
       isAppleLoading.value = true;
 
+      // Check if running on iOS
+      if (defaultTargetPlatform != TargetPlatform.iOS) {
+        Get.snackbar(
+          "Apple Sign-In Unavailable",
+          "Apple Sign-In is only available on iOS devices",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange.shade400,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+        isAppleLoading.value = false;
+        return;
+      }
+
       // Check if Apple Sign In is available
       if (!await SignInWithApple.isAvailable()) {
         Get.snackbar(
@@ -182,7 +198,7 @@ class LoginController extends GetxController {
 
       // Extract user information
       final String email = credential.email ?? '';
-        final String? givenName = credential.givenName;
+      final String? givenName = credential.givenName;
       final String? familyName = credential.familyName;
       final String appleId = credential.userIdentifier ?? '';
 
@@ -196,7 +212,20 @@ class LoginController extends GetxController {
           colorText: Colors.white,
           duration: const Duration(seconds: 5),
         );
-        isLoading.value = false;
+        isAppleLoading.value = false;
+        return;
+      }
+
+      // Check if this is a Hide My Email address (contains @privaterelay.appleid.com)
+      if (email.contains('@privaterelay.appleid.com')) {
+        // Navigate to Apple email confirmation screen
+        isAppleLoading.value = false;
+        Get.to(() => AppleEmailConfirmationScreen(
+          appleEmail: email,
+          firstName: givenName,
+          lastName: familyName,
+          appleId: appleId,
+        ));
         return;
       }
 
@@ -223,6 +252,15 @@ class LoginController extends GetxController {
 
         // Navigate to home screen
         Get.offAll(() => const HomeScreenPage());
+      } else {
+        Get.snackbar(
+          "Apple Login Failed",
+          loginResponse['data'] ?? 'Apple authentication failed',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red.shade400,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 5),
+        );
       }
 
     } catch (e) {

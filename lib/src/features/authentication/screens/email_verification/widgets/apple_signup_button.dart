@@ -1,5 +1,6 @@
 import 'package:expense_tracker/src/features/authentication/controllers/login_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:expense_tracker/src/constants/colors.dart';
 
@@ -8,6 +9,11 @@ class AppleSignUpButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Only show Apple Sign-In on iOS
+    if (defaultTargetPlatform != TargetPlatform.iOS) {
+      return const SizedBox.shrink();
+    }
+
     final controller = Get.put(LoginController());
 
     return Obx(() {

@@ -322,6 +322,7 @@ class AuthRepository extends ChangeNotifier {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
 
+
         // Save tokens from Google login response
         await UserPreferences().saveAccessToken(responseData['access_token']);
         await UserPreferences().saveRefreshToken(responseData['refresh_token']);

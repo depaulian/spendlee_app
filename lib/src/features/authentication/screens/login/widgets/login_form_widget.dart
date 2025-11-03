@@ -2,6 +2,7 @@ import 'package:expense_tracker/src/features/authentication/screens/email_verifi
 import 'package:expense_tracker/src/features/authentication/screens/forget_password/forget_password_mail.dart';
 import 'package:expense_tracker/src/features/authentication/screens/login/widgets/divider_with_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:expense_tracker/src/constants/image_strings.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
@@ -212,56 +213,57 @@ class LoginFormWidgetState extends State<LoginFormWidget> {
               ),
               const SizedBox(height: 15),
 
-              // Apple Sign-In Button
-              Obx(
-                    () => SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: (controller.isLoading.value || controller.isGoogleLoading.value || controller.isAppleLoading.value)
-                        ? null
-                        : () => controller.loginWithApple(),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: BorderSide.none,
-                      backgroundColor: tDarkColor,
-                    ),
-                    child: controller.isAppleLoading.value
-                        ? const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: tWhiteColor,
-                            strokeWidth: 2,
+              // Apple Sign-In Button (iOS only)
+              if (defaultTargetPlatform == TargetPlatform.iOS)
+                Obx(
+                      () => SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: (controller.isLoading.value || controller.isGoogleLoading.value || controller.isAppleLoading.value)
+                          ? null
+                          : () => controller.loginWithApple(),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        side: BorderSide.none,
+                        backgroundColor: tDarkColor,
+                      ),
+                      child: controller.isAppleLoading.value
+                          ? const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: tWhiteColor,
+                              strokeWidth: 2,
+                            ),
                           ),
-                        ),
-                        SizedBox(width: 10),
-                        Text(
-                          "Signing in...",
-                          style: TextStyle(color: tWhiteColor),
-                        ),
-                      ],
-                    )
-                        : const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.apple,
-                          color: tWhiteColor,
-                          size: 24,
-                        ),
-                        SizedBox(width: 10),
-                        Text(
-                          'Continue with Apple',
-                          style: TextStyle(color: tWhiteColor),
-                        ),
-                      ],
+                          SizedBox(width: 10),
+                          Text(
+                            "Signing in...",
+                            style: TextStyle(color: tWhiteColor),
+                          ),
+                        ],
+                      )
+                          : const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.apple,
+                            color: tWhiteColor,
+                            size: 24,
+                          ),
+                          SizedBox(width: 10),
+                          Text(
+                            'Continue with Apple',
+                            style: TextStyle(color: tWhiteColor),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
         ),
