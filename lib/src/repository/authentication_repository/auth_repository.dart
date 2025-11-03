@@ -360,23 +360,33 @@ class AuthRepository extends ChangeNotifier {
 
   // Apple Login
   Future<Map<String, dynamic>> loginWithApple({
-    required String email,
-    required String firstName,
-    required String lastName,
+    String? email,
+    String? firstName,
+    String? lastName,
     required String appleId,
   }) async {
     notifyListeners();
 
     try {
+      // Build request body - only include non-null values
+      final requestBody = <String, dynamic>{
+        'apple_id': appleId,
+      };
+      
+      if (email != null && email.isNotEmpty) {
+        requestBody['email'] = email;
+      }
+      if (firstName != null && firstName.isNotEmpty) {
+        requestBody['first_name'] = firstName;
+      }
+      if (lastName != null && lastName.isNotEmpty) {
+        requestBody['last_name'] = lastName;
+      }
+
       final response = await http.post(
         Uri.parse(tAppleLoginUrl),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'first_name': firstName,
-          'last_name': lastName,
-          'apple_id': appleId,
-        }),
+        body: jsonEncode(requestBody),
       );
 
       if (response.statusCode == 200) {
