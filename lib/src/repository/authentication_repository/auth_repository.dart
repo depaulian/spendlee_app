@@ -360,23 +360,33 @@ class AuthRepository extends ChangeNotifier {
 
   // Apple Login
   Future<Map<String, dynamic>> loginWithApple({
-    required String email,
-    required String firstName,
-    required String lastName,
+    String? email,
+    String? firstName,
+    String? lastName,
     required String appleId,
   }) async {
     notifyListeners();
 
     try {
+      // Build request body - only include non-null values
+      final requestBody = <String, dynamic>{
+        'apple_id': appleId,
+      };
+      
+      if (email != null && email.isNotEmpty) {
+        requestBody['email'] = email;
+      }
+      if (firstName != null && firstName.isNotEmpty) {
+        requestBody['first_name'] = firstName;
+      }
+      if (lastName != null && lastName.isNotEmpty) {
+        requestBody['last_name'] = lastName;
+      }
+
       final response = await http.post(
         Uri.parse(tAppleLoginUrl),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'first_name': firstName,
-          'last_name': lastName,
-          'apple_id': appleId,
-        }),
+        body: jsonEncode(requestBody),
       );
 
       if (response.statusCode == 200) {
@@ -562,6 +572,178 @@ class AuthRepository extends ChangeNotifier {
       return {
         'status': false,
         'message': 'Registration error',
+        'data': error.toString()
+      };
+    }
+  }
+
+  // Request email change
+  Future<Map<String, dynamic>> requestEmailChange(String newEmail) async {
+    try {
+      final accessToken = await UserPreferences().getAccessToken();
+      
+      final response = await http.post(
+        Uri.parse('$tBaseUrl/users/me/request-email-change'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'new_email': newEmail}),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return {
+          'status': true,
+          'message': responseData['message'],
+          'data': responseData
+        };
+      } else {
+        final errorData = jsonDecode(response.body);
+        return {
+          'status': false,
+          'message': errorData['detail'] ?? 'Failed to request email change',
+        };
+      }
+    } catch (error) {
+      return {
+        'status': false,
+        'message': 'Network error occurred',
+        'data': error.toString()
+      };
+    }
+  }
+
+  // Confirm email change with OTP
+  Future<Map<String, dynamic>> confirmEmailChange(String code) async {
+    try {
+      final accessToken = await UserPreferences().getAccessToken();
+      
+      final response = await http.post(
+        Uri.parse('$tBaseUrl/users/me/confirm-email-change'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'code': code}),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        
+        // Update stored user data with new email
+        final updatedUser = User.fromSpendleeJson(responseData);
+        await UserPreferences().saveUser(updatedUser);
+        
+        return {
+          'status': true,
+          'message': 'Email changed successfully',
+          'data': responseData
+        };
+      } else {
+        final errorData = jsonDecode(response.body);
+        return {
+          'status': false,
+          'message': errorData['detail'] ?? 'Failed to confirm email change',
+        };
+      }
+    } catch (error) {
+      return {
+        'status': false,
+        'message': 'Network error occurred',
+        'data': error.toString()
+      };
+    }
+  }
+
+  // Update user profile
+  Future<Map<String, dynamic>> updateUserProfile({
+    String? username,
+    String? firstName,
+    String? lastName,
+  }) async {
+    try {
+      final accessToken = await UserPreferences().getAccessToken();
+      
+      final requestBody = <String, dynamic>{};
+      if (username != null) requestBody['username'] = username;
+      if (firstName != null) requestBody['first_name'] = firstName;
+      if (lastName != null) requestBody['last_name'] = lastName;
+      
+      final response = await http.put(
+        Uri.parse('$tBaseUrl/users/me'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        
+        // Update stored user data
+        final updatedUser = User.fromSpendleeJson(responseData);
+        await UserPreferences().saveUser(updatedUser);
+        
+        return {
+          'status': true,
+          'message': 'Profile updated successfully',
+          'data': responseData
+        };
+      } else {
+        final errorData = jsonDecode(response.body);
+        return {
+          'status': false,
+          'message': errorData['detail'] ?? 'Failed to update profile',
+        };
+      }
+    } catch (error) {
+      return {
+        'status': false,
+        'message': 'Network error occurred',
+        'data': error.toString()
+      };
+    }
+  }
+
+  // Change password
+  Future<Map<String, dynamic>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final accessToken = await UserPreferences().getAccessToken();
+      
+      final response = await http.post(
+        Uri.parse('$tBaseUrl/users/me/change-password'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'current_password': currentPassword,
+          'new_password': newPassword,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return {
+          'status': true,
+          'message': responseData['message'] ?? 'Password changed successfully',
+        };
+      } else {
+        final errorData = jsonDecode(response.body);
+        return {
+          'status': false,
+          'message': errorData['detail'] ?? 'Failed to change password',
+        };
+      }
+    } catch (error) {
+      return {
+        'status': false,
+        'message': 'Network error occurred',
         'data': error.toString()
       };
     }

@@ -197,27 +197,13 @@ class LoginController extends GetxController {
       );
 
       // Extract user information
-      final String email = credential.email ?? '';
+      final String? email = credential.email;
       final String? givenName = credential.givenName;
       final String? familyName = credential.familyName;
       final String appleId = credential.userIdentifier ?? '';
 
-      // Handle case where email might be empty (returning users)
-      if (email.isEmpty) {
-        Get.snackbar(
-          "Apple Sign-In Error",
-          "Unable to retrieve email from Apple. Please try again or use a different sign-in method.",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red.shade400,
-          colorText: Colors.white,
-          duration: const Duration(seconds: 5),
-        );
-        isAppleLoading.value = false;
-        return;
-      }
-
-      // Check if this is a Hide My Email address (contains @privaterelay.appleid.com)
-      if (email.contains('@privaterelay.appleid.com')) {
+      // Check if this is a Hide My Email address (contains @privaterelay.appleid.com) and has email
+      if (email != null && email.contains('@privaterelay.appleid.com')) {
         // Navigate to Apple email confirmation screen
         isAppleLoading.value = false;
         Get.to(() => AppleEmailConfirmationScreen(
@@ -230,10 +216,11 @@ class LoginController extends GetxController {
       }
 
       // Login with Apple using Spendlee API
+      // For returning users, email and names might be null - that's expected
       final loginResponse = await authRepo.loginWithApple(
         email: email,
-        firstName: givenName ?? '',
-        lastName: familyName ?? '',
+        firstName: givenName,
+        lastName: familyName,
         appleId: appleId,
       );
 

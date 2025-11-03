@@ -1,5 +1,9 @@
 import 'package:expense_tracker/src/features/core/screens/settings/widgets/currency_selection_sheet.dart';
 import 'package:expense_tracker/src/features/core/screens/settings/widgets/premium_upgrade.dart';
+import 'package:expense_tracker/src/features/core/screens/email_change/email_change_screen.dart';
+import 'package:expense_tracker/src/features/core/screens/profile_update/profile_update_screen.dart';
+import 'package:expense_tracker/src/features/core/screens/change_password/change_password_screen.dart';
+import 'package:expense_tracker/src/features/core/screens/settings/widgets/security/security_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:expense_tracker/src/constants/colors.dart';
@@ -47,7 +51,25 @@ class AccountSettingsSection extends StatelessWidget {
           title: Text('Edit Profile', style: TextStyle(color: tDarkColor)),
           trailing: const Icon(Icons.chevron_right),
           onTap: () {
-            // Navigate to profile edit screen
+            Get.to(() => const ProfileUpdateScreen());
+          },
+        ),
+
+        ListTile(
+          leading: Icon(Icons.email, color: tPrimaryColor),
+          title: Text('Change Email', style: TextStyle(color: tDarkColor)),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () {
+            Get.to(() => const EmailChangeScreen());
+          },
+        ),
+
+        ListTile(
+          leading: Icon(Icons.lock, color: tPrimaryColor),
+          title: Text('Change Password', style: TextStyle(color: tDarkColor)),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () {
+            Get.to(() => const ChangePasswordScreen());
           },
         ),
 
@@ -56,7 +78,7 @@ class AccountSettingsSection extends StatelessWidget {
           title: Text('Security', style: TextStyle(color: tDarkColor)),
           trailing: const Icon(Icons.chevron_right),
           onTap: () {
-            // Navigate to security settings
+            _showSecurityBottomSheet();
           },
         ),
       ],
@@ -76,6 +98,17 @@ class AccountSettingsSection extends StatelessWidget {
           authRepo: authRepo,
           currentCurrency: currentCurrency,
         );
+      },
+    );
+  }
+
+  void _showSecurityBottomSheet() {
+    showModalBottomSheet(
+      context: Get.context!,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return const SecurityBottomSheet();
       },
     );
   }
