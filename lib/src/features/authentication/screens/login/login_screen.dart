@@ -28,7 +28,8 @@ class LoginScreen extends StatelessWidget {
               children: [
                 MinimalFormHeaderWidget(
                   image: tLogo,
-                  heightBetween: 20,
+                  heightBetween: 10,
+                  imageHeight: 0.18,
                 ),
                 const LoginFormWidget(),  // Make sure the form is scrollable
 

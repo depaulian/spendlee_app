@@ -5,6 +5,7 @@ import 'package:expense_tracker/src/features/authentication/screens/email_verifi
 import 'package:expense_tracker/src/features/authentication/screens/email_verification/widgets/continue_button.dart';
 import 'package:expense_tracker/src/features/authentication/screens/email_verification/widgets/divider_with_text.dart';
 import 'package:expense_tracker/src/features/authentication/screens/email_verification/widgets/google_signup_button.dart';
+import 'package:expense_tracker/src/features/authentication/screens/email_verification/widgets/apple_signup_button.dart';
 
 class EmailInputForm extends StatelessWidget {
   const EmailInputForm({super.key});
@@ -23,6 +24,8 @@ class EmailInputForm extends StatelessWidget {
         const DividerWithText(),
         const SizedBox(height: 24),
         const GoogleSignUpButton(),
+        const SizedBox(height: 15),
+        const AppleSignUpButton(),
       ],
     );
   }

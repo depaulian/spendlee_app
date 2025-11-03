@@ -1,14 +1,19 @@
 import 'package:expense_tracker/src/features/authentication/controllers/login_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:expense_tracker/src/constants/colors.dart';
-import 'package:expense_tracker/src/constants/image_strings.dart';
 
-class GoogleSignUpButton extends StatelessWidget {
-  const GoogleSignUpButton({super.key});
+class AppleSignUpButton extends StatelessWidget {
+  const AppleSignUpButton({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Only show Apple Sign-In on iOS
+    if (defaultTargetPlatform != TargetPlatform.iOS) {
+      return const SizedBox.shrink();
+    }
+
     final controller = Get.put(LoginController());
 
     return Obx(() {
@@ -18,14 +23,14 @@ class GoogleSignUpButton extends StatelessWidget {
           onPressed: (controller.isLoading.value || controller.isGoogleLoading.value || controller.isAppleLoading.value)
               ? null
               : () {
-            controller.loginWithGoogle();
+            controller.loginWithApple();
           },
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 16),
             side: BorderSide.none,
-            backgroundColor: tWhiteColor,
+            backgroundColor: tDarkColor,
           ),
-          child: controller.isGoogleLoading.value
+          child: controller.isAppleLoading.value
               ? const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -33,28 +38,29 @@ class GoogleSignUpButton extends StatelessWidget {
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(
-                  color: tDarkColor,
+                  color: tWhiteColor,
                   strokeWidth: 2,
                 ),
               ),
               SizedBox(width: 10),
               Text(
                 'Signing up...',
-                style: TextStyle(color: tDarkColor),
+                style: TextStyle(color: tWhiteColor),
               ),
             ],
           )
-              : Row(
+              : const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(
-                tGoogleLogoImage,
-                width: 24,
+              Icon(
+                Icons.apple,
+                color: tWhiteColor,
+                size: 24,
               ),
-              const SizedBox(width: 10),
-              const Text(
-                'Continue with Google',
-                style: TextStyle(color: tDarkColor),
+              SizedBox(width: 10),
+              Text(
+                'Continue with Apple',
+                style: TextStyle(color: tWhiteColor),
               ),
             ],
           ),

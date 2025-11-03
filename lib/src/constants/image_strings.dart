@@ -18,6 +18,7 @@ const String tIcon = "assets/images/logo/icon.png";
 
 // -- Login & SignUp Images
 const String tGoogleLogoImage = "assets/images/logo/google.png";
+const String tAppleLogoImage = "assets/images/logo/apple.png";
 
 
 // -- Forget Password Images

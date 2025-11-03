@@ -322,6 +322,7 @@ class AuthRepository extends ChangeNotifier {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
 
+
         // Save tokens from Google login response
         await UserPreferences().saveAccessToken(responseData['access_token']);
         await UserPreferences().saveRefreshToken(responseData['refresh_token']);
@@ -352,6 +353,65 @@ class AuthRepository extends ChangeNotifier {
       return {
         'status': false,
         'message': 'Network error during Google login',
+        'data': error.toString()
+      };
+    }
+  }
+
+  // Apple Login
+  Future<Map<String, dynamic>> loginWithApple({
+    required String email,
+    required String firstName,
+    required String lastName,
+    required String appleId,
+  }) async {
+    notifyListeners();
+
+    try {
+      final response = await http.post(
+        Uri.parse(tAppleLoginUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'first_name': firstName,
+          'last_name': lastName,
+          'apple_id': appleId,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+
+        // Save tokens from Apple login response
+        await UserPreferences().saveAccessToken(responseData['access_token']);
+        await UserPreferences().saveRefreshToken(responseData['refresh_token']);
+
+        // Get user profile after successful login
+        final userProfile = await getCurrentUserProfile(responseData['access_token']);
+
+        if (userProfile['status']) {
+          await UserPreferences().saveUser(User.fromSpendleeJson(userProfile['data']));
+
+          return {
+            'status': true,
+            'message': 'Apple login successful',
+            'data': userProfile['data']
+          };
+        } else {
+          return userProfile;
+        }
+      } else {
+        final errorData = jsonDecode(response.body);
+        return {
+          'status': false,
+          'message': 'Apple login failed',
+          'data': errorData['detail'] ?? 'Apple authentication failed'
+        };
+      }
+    } catch (error) {
+      return {
+        'status': false,
+        'message': 'Network error during Apple login',
         'data': error.toString()
       };
     }
