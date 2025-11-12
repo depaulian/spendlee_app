@@ -9,6 +9,7 @@ class User {
   final DateTime? trialEndDate;
   final int monthlyScansUsed;
   final String defaultCurrency;
+  final bool isDefaultCurrencyManuallySet;
   final DateTime createdAt;
 
   User({
@@ -22,6 +23,7 @@ class User {
     this.trialEndDate,
     required this.monthlyScansUsed,
     required this.defaultCurrency,
+    required this.isDefaultCurrencyManuallySet,
     required this.createdAt,
   });
 
@@ -40,6 +42,7 @@ class User {
           : null,
       monthlyScansUsed: json['monthly_scans_used'],
       defaultCurrency: json['default_currency'],
+      isDefaultCurrencyManuallySet:json['is_default_currency_manually_set'],
       createdAt: DateTime.parse(json['created_at']),
     );
   }
@@ -61,6 +64,7 @@ class User {
       'trial_end_date': trialEndDate?.toIso8601String(),
       'monthly_scans_used': monthlyScansUsed,
       'default_currency': defaultCurrency,
+      'is_default_currency_manually_set':isDefaultCurrencyManuallySet,
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -93,6 +97,7 @@ class User {
     DateTime? trialEndDate,
     int? monthlyScansUsed,
     String? defaultCurrency,
+    bool? isDefaultCurrencyManuallySet,
     DateTime? createdAt,
   }) {
     return User(
@@ -106,6 +111,7 @@ class User {
       trialEndDate: trialEndDate ?? this.trialEndDate,
       monthlyScansUsed: monthlyScansUsed ?? this.monthlyScansUsed,
       defaultCurrency: defaultCurrency?? this.defaultCurrency,
+      isDefaultCurrencyManuallySet: isDefaultCurrencyManuallySet?? this.isDefaultCurrencyManuallySet,
       createdAt: createdAt ?? this.createdAt,
     );
   }

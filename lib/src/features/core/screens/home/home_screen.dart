@@ -9,12 +9,15 @@ import 'package:get/get.dart';
 import 'package:expense_tracker/src/utils/tab_handler.dart';
 import 'package:expense_tracker/src/utils/theme/theme_controller.dart';
 import 'package:expense_tracker/src/features/core/controllers/home_controller.dart';
+import 'package:expense_tracker/src/features/core/controllers/currency_controller.dart';
 
 // Import the separate widget files
 import 'widgets/balance_card_widget.dart';
 import 'widgets/action_buttons_widget.dart';
 import 'widgets/budget_section_widget.dart';
 import 'widgets/recent_transactions_widget.dart';
+import 'widgets/default_currency_prompt_modal.dart';
+import 'package:expense_tracker/src/services/location_service.dart';
 
 class HomeScreenPage extends StatefulWidget {
   const HomeScreenPage({super.key});
@@ -27,6 +30,9 @@ class HomeScreenPageState extends State<HomeScreenPage> {
   final authRepo = AuthenticationRepository.instance;
   late HomeController homeController;
   int currentPage = 0;
+  
+  // Store detected location data
+  Map<String, String>? _detectedLocationData;
 
   @override
   void initState() {
@@ -34,6 +40,13 @@ class HomeScreenPageState extends State<HomeScreenPage> {
     homeController = Get.put(HomeController());
     // Initialize receipt scan controller
     Get.put(ReceiptScanController());
+    // Initialize currency controller
+    Get.put(CurrencyController());
+    
+    // Check if we need to show default currency prompt (will detect location first)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkDefaultCurrencyPrompt();
+    });
   }
 
   @override
@@ -476,5 +489,84 @@ class HomeScreenPageState extends State<HomeScreenPage> {
       // Refresh data if transaction was added
       homeController.refreshData();
     }
+  }
+
+  Future<void> _detectLocationInBackground() async {
+    try {
+      print('Home: Starting background location detection...');
+      // Detect location silently in background
+      _detectedLocationData = await LocationService.detectCountryAndCurrency();
+      if (_detectedLocationData != null) {
+        print('Home: Location detected successfully: ${_detectedLocationData!['country']} (${_detectedLocationData!['currencyCode']})');
+      } else {
+        print('Home: Location detection returned null');
+      }
+    } catch (e) {
+      // Silently fail - will use fallback in currency prompt
+      print('Home: Location detection failed with error: $e');
+      _detectedLocationData = null;
+    }
+  }
+
+  Future<void> _checkDefaultCurrencyPrompt() async {
+    try {
+      final user = authRepo.appUser;
+      
+      // Check if user exists and default currency is not manually set
+      if (user != null && !user.isDefaultCurrencyManuallySet) {
+        // First detect location with timeout, then show the modal
+        try {
+          await _detectLocationInBackground().timeout(
+            const Duration(seconds: 25), // Give enough time for location detection
+            onTimeout: () {
+              print('Home: Location detection timed out, proceeding with fallback');
+              _detectedLocationData = null;
+            },
+          );
+        } catch (e) {
+          print('Home: Location detection failed: $e, proceeding with fallback');
+          _detectedLocationData = null;
+        }
+        
+        // Show the default currency prompt modal with detected location (or fallback)
+        await _showDefaultCurrencyPrompt();
+      }
+    } catch (e) {
+      print('Error checking default currency prompt: $e');
+    }
+  }
+
+  Future<void> _showDefaultCurrencyPrompt() async {
+    if (!mounted) return;
+
+    // Use pre-detected location data or fallback
+    String detectedCountry;
+    String recommendedCurrencyCode;
+    String recommendedCurrencyName;
+
+    if (_detectedLocationData != null) {
+      detectedCountry = _detectedLocationData!['country']!;
+      recommendedCurrencyCode = _detectedLocationData!['currencyCode']!;
+      recommendedCurrencyName = _detectedLocationData!['currencyName']!;
+    } else {
+      // Fallback if location detection failed
+      detectedCountry = 'your location';
+      recommendedCurrencyCode = 'USD';
+      recommendedCurrencyName = 'US Dollar';
+    }
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => DefaultCurrencyPromptModal(
+          detectedCountry: detectedCountry,
+          recommendedCurrencyCode: recommendedCurrencyCode,
+          recommendedCurrencyName: recommendedCurrencyName,
+          onCompleted: () {
+            // Refresh user data after currency is set
+            authRepo.refreshUserData();
+          },
+        ),
+      ),
+    );
   }
 }

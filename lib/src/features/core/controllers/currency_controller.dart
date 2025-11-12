@@ -40,10 +40,13 @@ class CurrencyController extends GetxController {
         // Update local preferences
         await _userPreferences.setCurrency(currencyCode);
         
-        // Update user object with new default currency
+        // Update user object with new default currency and mark as manually set
         final currentUser = await _userPreferences.getUser();
         if (currentUser != null) {
-          final updatedUser = currentUser.copyWith(defaultCurrency: currencyCode);
+          final updatedUser = currentUser.copyWith(
+            defaultCurrency: currencyCode,
+            isDefaultCurrencyManuallySet: true,
+          );
           await _userPreferences.saveUser(updatedUser);
         }
         
